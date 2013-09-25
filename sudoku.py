@@ -8,7 +8,7 @@ class Sudoku(object):
         self.size = int(len(grid) ** 0.5)
 
         if self.size ** 2 != len(grid):
-            raise ValueError("Grid dimensions do not match")
+            raise ValueError("Expecting a square grid")
 
     @property
     def rows(self):
@@ -21,7 +21,20 @@ class Sudoku(object):
 
     @property
     def blocks(self):
-        return 0
+        result = []
+        block_size = int(self.size ** 0.5)
+
+        for _y in range(0, block_size):
+            for _x in range(0, block_size):
+                block = []
+                x = _x * block_size
+                y = _y * block_size * self.size
+                start = x + y
+                for r in range(block_size):
+                    block += self.grid[start:start+block_size]
+                    start += self.size
+                result.append(block)
+        return result
 
     def solve(self):
         pass
