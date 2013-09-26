@@ -6,6 +6,7 @@ class Sudoku(object):
     def __init__(self, grid):
         self.grid = grid
         self.size = int(len(grid) ** 0.5)
+        self.block_size = int(self.size ** 0.5)
 
         if self.size ** 2 != len(grid):
             raise ValueError("Expecting a square grid")
@@ -22,68 +23,67 @@ class Sudoku(object):
     @property
     def blocks(self):
         result = []
-        block_size = int(self.size ** 0.5)
-
-        for _y in range(0, block_size):
-            for _x in range(0, block_size):
+        for _y in range(0, self.block_size):
+            for _x in range(0, self.block_size):
                 block = []
-                x = _x * block_size
-                y = _y * block_size * self.size
+                x = _x * self.block_size
+                y = _y * self.block_size * self.size
                 start = x + y
-                for r in range(block_size):
-                    block += self.grid[start:start+block_size]
+                for r in range(self.block_size):
+                    block += self.grid[start:start + self.block_size]
                     start += self.size
                 result.append(block)
         return result
 
     def solve(self):
-        pass
+        problem = Problem()
+
+        for i, n in enumerate(self.grid):
+            problem.addVariable(i, range(1, self.size + 1) if n == 0 else [n])
+
+        _s = Sudoku(range(len(self.grid)))
+        for row in _s.rows:
+            problem.addConstraint(AllDifferentConstraint(), row)
+        for col in _s.columns:
+            problem.addConstraint(AllDifferentConstraint(), col)
+        for block in _s.blocks:
+            problem.addConstraint(AllDifferentConstraint(), block)
+
+        solution = problem.getSolution()
+        self.grid = solution.values()
 
     def __str__(self):
-        pass
+        result = ''
+        number_width = len(str(self.size)) + 1
+        block_count = int(self.size / self.block_size)
+        block_width = block_count * number_width
 
-
-def print_sudoku(sudoku):
-    for i in range(size):
-        print sudoku[i * size: i * size + size]
+        for y, row in enumerate(self.rows):
+            if y % self.block_size == 0 and y > 0:
+                # insert horizontal line
+                result += "+-".join(["-" * block_width] * block_count) + "\n"
+            for x, num in enumerate(row):
+                if x % self.block_size == 0 and x > 0:
+                    # insert vertical line
+                    result += "| "
+                # draw numbers
+                result += str(num).ljust(number_width)
+            result += "\n"
+        return result
 
 if __name__ == '__main__':
+    hardest = [8, 0, 0, 0, 0, 0, 0, 0, 0,
+               0, 0, 3, 6, 0, 0, 0, 0, 0,
+               0, 7, 0, 0, 9, 0, 2, 0, 0,
+               0, 5, 0, 0, 0, 7, 0, 0, 0,
+               0, 0, 0, 0, 4, 5, 7, 0, 0,
+               0, 0, 0, 1, 0, 0, 0, 3, 0,
+               0, 0, 1, 0, 0, 0, 0, 6, 8,
+               0, 0, 8, 5, 0, 0, 0, 1, 0,
+               0, 9, 0, 0, 0, 0, 4, 0, 0]
 
-    s = Sudoku([1, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                3, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                4, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                5, 0, 0, 0, 0, 0, 0, 0, 0,
-                0, 0, 0, 0, 0, 0, 0, 0, 0,
-                6, 0, 0, 0, 0, 0, 0, 0, 0])
+    empty = [0] * 81
 
-    for row in s.rows:
-        print row
-
-    for col in s.columns:
-        print col
-
-    size = 9
-    sudoku = [i for i in range(size ** 2)]
-
-    # todo: blocks
-    # i = 3
-    # print sudoku[i*3:i*3+3] + sudoku[i*3+9:i*3+3+9] + sudoku[i*3+18:i*3+3+18]
-    exit()
-
-    problem = Problem()
-    problem.addVariables(sudoku, range(1, size + 1))
-
-    # apply "all different"-constraints on rows and columns
-    for i in xrange(size):
-        row = sudoku[i * size: size * (i + 1)]
-        problem.addConstraint(AllDifferentConstraint(), row)
-        col = sudoku[i::size]
-        problem.addConstraint(AllDifferentConstraint(), col)
-
-    # apply "all different"-constraint on blocks
-
-    solution = problem.getSolutionIter()
-    print_sudoku(solution.next().values())
+    s = Sudoku(hardest)
+    s.solve()
+    print(s)
