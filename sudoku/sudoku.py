@@ -135,7 +135,7 @@ if __name__ == '__main__':
     empty_normal = [0] * (9 ** 2)
     empty_big = [0] * (16 ** 2)
 
-    s = Sudoku(small)
+    s = Sudoku(hardest)
     s.solve()
 
     print(s)
