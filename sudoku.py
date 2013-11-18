@@ -1,9 +1,31 @@
-from constraint import *
+"""
+A module for managing and solving sudokus of variable size
+"""
+import constraint
 
 
 class Sudoku(object):
 
+    """
+    This class manages Sudoku grids of variable sizes.
+
+    It allows for easy access to the individual rows, columns and blocks of
+    the grid. Sudokus can be solved using constraint processing.
+    """
+
     def __init__(self, grid):
+        """
+        The constructor expects a flat list as a grid, for example:
+
+        >>> grid4x4 = [0, 1, 0, 0,
+        ...            0, 0, 4, 0,
+        ...            0, 0, 0, 0,
+        ...            0, 0, 3, 0]
+        >> Sudoku(grid4x4)
+
+        Where zeros indicate an empty field.
+        The grid's length must be a a square number.
+        """
         self.grid = grid
         self.size = int(len(grid) ** 0.5)
         self.block_size = int(self.size ** 0.5)
@@ -13,18 +35,27 @@ class Sudoku(object):
 
     @property
     def rows(self):
-        return [self.grid[n * self.size:self.size * (n + 1)]
-                for n in range(self.size)]
+        """
+        Generator expression for accessing the individual rows of the grid
+        """
+        for n in range(self.size):
+            yield self.grid[n * self.size:self.size * (n + 1)]
 
     @property
     def columns(self):
-        return [self.grid[n::self.size] for n in range(self.size)]
+        """
+        Returns a generator for accessing the individual columns of the grid
+        """
+        for n in range(self.size):
+            yield self.grid[n::self.size]
 
     @property
     def blocks(self):
-        result = []
-        for _y in range(0, self.block_size):
-            for _x in range(0, self.block_size):
+        """
+        Returns a generator for accessing the individual blocks of the grid
+        """
+        for _y in range(self.block_size):
+            for _x in range(self.block_size):
                 block = []
                 x = _x * self.block_size
                 y = _y * self.block_size * self.size
@@ -32,32 +63,42 @@ class Sudoku(object):
                 for r in range(self.block_size):
                     block += self.grid[start:start + self.block_size]
                     start += self.size
-                result.append(block)
-        return result
+                yield block
 
     def solve(self):
-        problem = Problem()
+        """
+        Solves the sudoku.
+
+        This will replace the empty cells in this sudoku with the solutions.
+        """
+        problem = constraint.Problem()
+        all_different = constraint.AllDifferentConstraint()
 
         for i, n in enumerate(self.grid):
             problem.addVariable(i, range(1, self.size + 1) if n == 0 else [n])
 
         _s = Sudoku(range(len(self.grid)))
         for row in _s.rows:
-            problem.addConstraint(AllDifferentConstraint(), row)
+            problem.addConstraint(all_different, row)
         for col in _s.columns:
-            problem.addConstraint(AllDifferentConstraint(), col)
+            problem.addConstraint(all_different, col)
         for block in _s.blocks:
-            problem.addConstraint(AllDifferentConstraint(), block)
+            problem.addConstraint(all_different, block)
 
         solution = problem.getSolution()
         self.grid = solution.values()
 
     def __str__(self):
+        """
+        Shows the string representation of the sudoku grid.
+        """
         result = ''
         number_width = len(str(self.size)) + 1
         block_count = int(self.size / self.block_size)
         block_width = block_count * number_width
 
+        # Formatting has gotten bit complex because we need to handle grids of
+        # variable size. As a result, numbers are often longer than one char.
         for y, row in enumerate(self.rows):
             if y % self.block_size == 0 and y > 0:
                 # insert horizontal line
@@ -71,7 +112,13 @@ class Sudoku(object):
             result += "\n"
         return result
 
+
 if __name__ == '__main__':
+    small = [0, 1, 0, 0,
+             0, 0, 4, 0,
+             0, 0, 0, 0,
+             0, 0, 3, 0]
+
     hardest = [8, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 3, 6, 0, 0, 0, 0, 0,
                0, 7, 0, 0, 9, 0, 2, 0, 0,
@@ -82,8 +129,10 @@ if __name__ == '__main__':
                0, 0, 8, 5, 0, 0, 0, 1, 0,
                0, 9, 0, 0, 0, 0, 4, 0, 0]
 
-    empty = [0] * 81
+    empty = [0] * 9 * 9
+    empty16x16 = [0] * 16 * 16
 
     s = Sudoku(hardest)
     s.solve()
+
     print(s)
