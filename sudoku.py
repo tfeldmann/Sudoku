@@ -31,7 +31,7 @@ class Sudoku(object):
         self.block_size = int(self.size ** 0.5)
 
         if self.size ** 2 != len(grid):
-            raise ValueError("Expecting a square grid")
+            raise ValueError('Expecting a square grid')
 
     @property
     def rows(self):
@@ -86,7 +86,10 @@ class Sudoku(object):
             problem.addConstraint(all_different, block)
 
         solution = problem.getSolution()
-        self.grid = solution.values()
+        if solution:
+            self.grid = solution.values()
+        else:
+            raise ValueError('No solutions found')
 
     def __str__(self):
         """
@@ -117,7 +120,7 @@ if __name__ == '__main__':
     small = [0, 1, 0, 0,
              0, 0, 4, 0,
              0, 0, 0, 0,
-             0, 0, 3, 0]
+             0, 2, 3, 0]
 
     hardest = [8, 0, 0, 0, 0, 0, 0, 0, 0,
                0, 0, 3, 6, 0, 0, 0, 0, 0,
@@ -129,10 +132,10 @@ if __name__ == '__main__':
                0, 0, 8, 5, 0, 0, 0, 1, 0,
                0, 9, 0, 0, 0, 0, 4, 0, 0]
 
-    empty = [0] * 9 * 9
-    empty16x16 = [0] * 16 * 16
+    empty_normal = [0] * (9 ** 2)
+    empty_big = [0] * (16 ** 2)
 
-    s = Sudoku(hardest)
+    s = Sudoku(small)
     s.solve()
 
     print(s)
