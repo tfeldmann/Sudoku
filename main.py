@@ -34,5 +34,5 @@ def solve_sudoku_in_picture(filename):
     cv2.imshow('Biggest contour is not the sudoku', original)
 
 if __name__ == '__main__':
-    solve_sudoku_in_picture('sudoku-original.jpg')
+    solve_sudoku_in_picture('sudoku.jpg')
     cv2.waitKey(0)
