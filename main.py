@@ -16,8 +16,7 @@ def solve_sudoku_in_picture(filename):
 
     # binary
     img = cv2.adaptiveThreshold(
-        img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-        cv2.THRESH_BINARY, 11, 2)
+        img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
     cv2.imshow('Treshold', img)
 
     # find contours
@@ -32,6 +31,7 @@ def solve_sudoku_in_picture(filename):
 
     cv2.drawContours(original, [biggest_contour], 0, (255, 255, 255))
     cv2.imshow('Biggest contour is not the sudoku', original)
+
 
 if __name__ == '__main__':
     solve_sudoku_in_picture('sudoku.jpg')
