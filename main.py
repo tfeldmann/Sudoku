@@ -32,7 +32,11 @@ def solve_sudoku_in_picture(filename):
     cv2.drawContours(original, [biggest_contour], 0, (255, 255, 255))
     cv2.imshow('Biggest contour is not the sudoku', original)
 
+def get_text():
+    return "test"
+
 
 if __name__ == '__main__':
+    print get_text()
     solve_sudoku_in_picture('sudoku.jpg')
     cv2.waitKey(0)
