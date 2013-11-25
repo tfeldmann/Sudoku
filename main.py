@@ -34,16 +34,23 @@ def solve_sudoku_in_picture(filename):
     img = cv2.bitwise_or(mask_inv, img)
     cv2.imshow('winname', img)
 
-    dst = cv2.Sobel(img, -1, 1, 0)
-    cv2.imshow('test', dst)
+    # sobel x-axis
+    sobel_x = cv2.Sobel(img, -1, 1, 0)
+    kernel_x = np.array([[1]] * 9, dtype='uint8')
 
-    # threshold
-    retval, dst2 = cv2.threshold(dst, 40, 255, cv2.THRESH_BINARY)
-    
-    kernel= np.array([[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1],[1,1,1,1,1]])
+    # closing x-axis
+    sobel_x = cv2.dilate(sobel_x, kernel_x)
+    cv2.imshow('Sobel X', sobel_x)
 
-    dst3 = cv2.dilate(dst2,kernel)
-    cv2.imshow('test3', dst3)
+    # sobel y-axis
+    sobel_y = cv2.Sobel(img, -1, 0, 1)
+    kernel_y = np.array([[[1]] * 9], dtype='uint8')
+
+    # closing y-axis
+    sobel_y = cv2.dilate(sobel_y, kernel_y)
+    cv2.imshow('Sobel Y', sobel_y)
+
+    cv2.imshow('winname', cv2.bitwise_and(sobel_y, sobel_x))
 
 if __name__ == '__main__':
     solve_sudoku_in_picture('sudoku.jpg')
