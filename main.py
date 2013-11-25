@@ -33,28 +33,6 @@ def solve_sudoku_in_picture(filename):
     img = cv2.bitwise_and(original, mask)
     cv2.imshow('winname', img)
 
-    # resize
-    # normed_size = cv2.resize(img, (450, 450))
-    # cv2.imshow('winname', normed_size)
-
-    # ocr all letters
-    # for y in range(0, 450, 50):
-    #     for x in range(0, 450, 50):
-    #         roi = normed_size[y + 5:y + 45, x + 5:x + 45]
-    #         cv_roi = array2cv(roi)
-    #         tesseract.SetCvImage(cv_roi, api)
-    #         number = api.GetUTF8Text().strip()
-    #         if number == '':
-    #             print '_',
-    #         else:
-    #             print number,
-    #     print('')
-
-    # histogram
-    # hist = cv2.calcHist([img], [0], None, [256], [0, 256])
-    # plt.plot(hist)
-    # plt.show()
-    # binary
 
 if __name__ == '__main__':
     solve_sudoku_in_picture('sudoku.jpg')
