@@ -1,4 +1,5 @@
 import cv2
+import numpy as np
 
 
 def solve_sudoku_in_picture(filename):
@@ -12,7 +13,7 @@ def solve_sudoku_in_picture(filename):
     img = cv2.adaptiveThreshold(
         img, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
 
-    # invertieren
+    # invert
     img = cv2.bitwise_not(img)
 
     # find bigged contour
@@ -23,14 +24,20 @@ def solve_sudoku_in_picture(filename):
     for c in contours:
         if cv2.contourArea(c) > cv2.contourArea(biggest_contour):
             biggest_contour = c
-    cv2.drawContours(original, [biggest_contour], 0, (255, 255, 255))
-    cv2.imshow('Sudoku', original)
 
-    # # resize
+    # create mask
+    mask = np.zeros(img.shape, np.uint8)
+    cv2.drawContours(mask, [biggest_contour], 0, 255, -1)
+
+    # apply mask
+    img = cv2.bitwise_and(original, mask)
+    cv2.imshow('winname', img)
+
+    # resize
     # normed_size = cv2.resize(img, (450, 450))
     # cv2.imshow('winname', normed_size)
 
-    # # ocr all letters
+    # ocr all letters
     # for y in range(0, 450, 50):
     #     for x in range(0, 450, 50):
     #         roi = normed_size[y + 5:y + 45, x + 5:x + 45]
