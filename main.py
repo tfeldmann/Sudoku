@@ -77,7 +77,7 @@ def process(frame):
             drawContours(mask, [sudoku_contour], 0, 255, -1)
             mask_inv = bitwise_not(mask)
             separated = bitwise_or(mask_inv, blurred)
-            imshow('separated', separated)
+            # imshow('separated', separated)
 
             square = np.float32([[50, 50], [500, 50], [50, 500], [500, 500]])
             approx = np.float32([i[0] for i in approx])  # conversion
@@ -87,44 +87,46 @@ def process(frame):
             transformed = warpPerspective(separated, m, (550, 550))
             imshow('transformed', transformed)
 
+            #
+            # get crossing points to determine grid convolution
+            #
 
+            # sobel x-axis
+            sobel_x = Sobel(transformed, -1, 1, 0)
+            kernel_x = np.array([[1]] * 15, dtype='uint8')
 
-    ## --------------------
-    # sobel x-axis
-    # sobel_x = Sobel(img, -1, 1, 0)
-    # kernel_x = np.array([[1]] * 15, dtype='uint8')
+            # dilate x-axis
+            sobel_x = dilate(sobel_x, kernel_x)
 
-    # closing x-axis
-    # sobel_x = dilate(sobel_x, kernel_x)
+            # generate mask for x
+            contours, _ = findContours(sobel_x, RETR_TREE, CHAIN_APPROX_SIMPLE)
+            sorted_contours = sorted(contours, cmp=cmp_height)
 
-    # generate mask for x
-    # contours, hierarchy = findContours(
-    #     sobel_x, RETR_TREE, CHAIN_APPROX_SIMPLE)
-    # sorted_contours = sorted(contours, cmp=cmp_height)
+            # fill biggest 10 on mask
+            mask_x = np.zeros(transformed.shape, np.uint8)
+            for c in sorted_contours[:10]:
+                drawContours(mask_x, [c], 0, 255, -1)
+            # imshow('mask_x', mask_x)
 
-    # fill biggest 10 on mask
-    # mask_x = np.zeros(img.shape, np.uint8)
-    # for c in sorted_contours[:10]:
-    #     drawContours(mask_x, [c], 0, 255, -1)
+            # sobel y-axis
+            sobel_y = Sobel(transformed, -1, 0, 1)
+            kernel_y = np.array([[[1]] * 15], dtype='uint8')
 
-    # sobel y-axis
-    # sobel_y = Sobel(img, -1, 0, 1)
-    # kernel_y = np.array([[[1]] * 15], dtype='uint8')
+            # closing y-axis
+            sobel_y = dilate(sobel_y, kernel_y)
 
-    # closing y-axis
-    # sobel_y = dilate(sobel_y, kernel_y)
+            # generate mask for y
+            contours, hierarchy = findContours(
+                sobel_y, RETR_TREE, CHAIN_APPROX_SIMPLE)
+            sorted_contours = sorted(contours, cmp=cmp_width)
 
-    # generate mask for x
-    # contours, hierarchy = findContours(
-    #     sobel_y, RETR_TREE, CHAIN_APPROX_SIMPLE)
-    # sorted_contours = sorted(contours, cmp=cmp_width)
+            # fill biggest 10 on mask
+            mask_y = np.zeros(transformed.shape, np.uint8)
+            for c in sorted_contours[:10]:
+                drawContours(mask_y, [c], 0, 255, -1)
 
-    # fill biggest 10 on mask
-    # mask_y = np.zeros(img.shape, np.uint8)
-    # for c in sorted_contours[:10]:
-    #     drawContours(mask_y, [c], 0, 255, -1)
-
-    # imshow('matrix', bitwise_and(mask_x, mask_y))
+            crossing = bitwise_and(mask_x, mask_y)
+            imshow('crossing', crossing)
 
     drawContours(frame, [sudoku_contour], 0, 255)
     imshow('Input', frame)
