@@ -1,6 +1,6 @@
 from __future__ import division
-from cv2 import *
 import numpy as np
+from cv2 import *
 
 
 def cmp_height(x, y):
@@ -15,7 +15,28 @@ def cmp_width(x, y):
     return wy - wx
 
 
-def process(frame):
+def sort_rectangle_contour(a):
+    # sort by y
+    a = a[np.argsort(a[:, 1])]
+
+    # put in groups
+    a = np.reshape(a, (2, 2, 2))
+
+    # sort rows by x
+    a = np.vstack([row[np.argsort(row[:, 0])] for row in a])
+
+    # regroup
+    a = np.reshape(a, (4, 1, 2))
+    return a
+
+
+def get_sudoku(frame):
+    """
+    Finds a sudoku grid in a frame.
+
+    Returns a rotated, transformed and resized image of the sudoku with an
+    border of 50px
+    """
     # convert to grayscale
     img = cvtColor(frame, COLOR_BGR2GRAY)
 
@@ -48,16 +69,20 @@ def process(frame):
     if sudoku_contour is not None:
         perimeter = arcLength(sudoku_contour, True)
         approx = approxPolyDP(sudoku_contour, 0.1 * perimeter, True)
+
+        # return with 50px border
         if len(approx) == 4:
-            square = np.float32([[450, 0], [0, 0], [0, 450], [450, 450]])
+            square = np.float32([[50, 50], [500, 50], [50, 500], [500, 500]])
             approx = np.float32([i[0] for i in approx])
+            approx = sort_rectangle_contour(approx)
 
             m = getPerspectiveTransform(approx, square)
-            out = warpPerspective(frame, m, (450, 450))
-            imshow('winname', out)
+            transformed = warpPerspective(frame, m, (550, 550))
+            return transformed
 
-        # show contour of sudoku in original video
-        # drawContours(frame, [sudoku_contour], 0, 255)
+
+def process(frame):
+    img = get_sudoku(frame)
 
     # create mask
     # mask = np.zeros(img.shape, np.uint8)
@@ -105,6 +130,9 @@ def process(frame):
     # imshow('matrix', bitwise_and(mask_x, mask_y))
 
     imshow('Input', frame)
+
+    if img is not None:
+        imshow('Sudoku', img)
 
 
 def solve_sudoku_in_picture(filename):
