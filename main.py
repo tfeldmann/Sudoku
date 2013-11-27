@@ -16,44 +16,38 @@ def cmp_width(x, y):
 
 
 def sort_rectangle_contour(a):
+    """
+    Given a list of four points that represent a quad, this function returns
+    the list sorted from top to bottom, then left to right.
+    """
     # sort by y
     a = a[np.argsort(a[:, 1])]
-
     # put in groups
     a = np.reshape(a, (2, 2, 2))
-
     # sort rows by x
     a = np.vstack([row[np.argsort(row[:, 0])] for row in a])
-
-    # regroup
+    # undo shape transformation
     a = np.reshape(a, (4, 1, 2))
     return a
 
 
-def get_sudoku(frame):
-    """
-    Finds a sudoku grid in a frame.
+def process(frame):
 
-    Returns a rotated, transformed and resized image of the sudoku with an
-    border of 50px
-    """
-    # convert to grayscale
-    img = cvtColor(frame, COLOR_BGR2GRAY)
+    #
+    # preprocessing
+    #
+    gray = cvtColor(frame, COLOR_BGR2GRAY)
+    binary = adaptiveThreshold(gray, 255,
+                               ADAPTIVE_THRESH_GAUSSIAN_C,
+                               THRESH_BINARY, 11, 2)
+    blurred = medianBlur(binary, 3)
+    inverse = bitwise_not(blurred)
+    contours, _ = findContours(inverse, RETR_TREE,
+                               CHAIN_APPROX_SIMPLE)
 
-    # threshold
-    img = adaptiveThreshold(img, 255,
-                            ADAPTIVE_THRESH_GAUSSIAN_C,
-                            THRESH_BINARY, 11, 2)
-
-    # median
-    img = medianBlur(img, 3)
-
-    # find contours
-    inv = bitwise_not(img)
-    contours, hierarchy = findContours(inv, RETR_TREE,
-                                       CHAIN_APPROX_SIMPLE)
-
+    #
     # try to find the sudoku
+    #
     sudoku_area = 0
     sudoku_contour = None
     for cnt in contours:
@@ -66,33 +60,36 @@ def get_sudoku(frame):
             sudoku_area = area
             sudoku_contour = cnt
 
+    #
+    # separate sudoku from background
+    #
     if sudoku_contour is not None:
+
+        # first we make sure the found contour can be approximated by a quad
         perimeter = arcLength(sudoku_contour, True)
         approx = approxPolyDP(sudoku_contour, 0.1 * perimeter, True)
 
-        # return with 50px border
         if len(approx) == 4:
+            # successfully approximated
+            # we now transform the sudoku to a fixed size 450x450
+            # plus 50 pixel border and remove the background
+            mask = np.zeros(gray.shape, np.uint8)
+            drawContours(mask, [sudoku_contour], 0, 255, -1)
+            mask_inv = bitwise_not(mask)
+            separated = bitwise_or(mask_inv, blurred)
+            imshow('separated', separated)
+
             square = np.float32([[50, 50], [500, 50], [50, 500], [500, 500]])
-            approx = np.float32([i[0] for i in approx])
+            approx = np.float32([i[0] for i in approx])  # conversion
             approx = sort_rectangle_contour(approx)
 
             m = getPerspectiveTransform(approx, square)
-            transformed = warpPerspective(frame, m, (550, 550))
-            return transformed
+            transformed = warpPerspective(separated, m, (550, 550))
+            imshow('transformed', transformed)
 
 
-def process(frame):
-    img = get_sudoku(frame)
 
-    # create mask
-    # mask = np.zeros(img.shape, np.uint8)
-    # drawContours(mask, [biggest_contour], 0, 255, -1)
-    # mask_inv = bitwise_not(mask)
-
-    # show only sudoku on white background
-    # img = bitwise_or(mask_inv, img)
-    # imshow('sudooku', img)
-
+    ## --------------------
     # sobel x-axis
     # sobel_x = Sobel(img, -1, 1, 0)
     # kernel_x = np.array([[1]] * 15, dtype='uint8')
@@ -129,10 +126,8 @@ def process(frame):
 
     # imshow('matrix', bitwise_and(mask_x, mask_y))
 
+    drawContours(frame, [sudoku_contour], 0, 255)
     imshow('Input', frame)
-
-    if img is not None:
-        imshow('Sudoku', img)
 
 
 def solve_sudoku_in_picture(filename):
