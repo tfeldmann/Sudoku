@@ -3,6 +3,11 @@ import numpy as np
 from cv2 import *
 
 
+def draw_str(dst, (x, y), s):
+    putText(dst, s, (x, y),
+            FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=CV_AA)
+
+
 def cmp_height(x, y):
     _, _, _, hx = boundingRect(x)
     _, _, _, hy = boundingRect(y)
@@ -153,8 +158,8 @@ def process(frame):
             contours, _ = findContours(
                 crossing, RETR_TREE, CHAIN_APPROX_SIMPLE)
             for n, cnt in enumerate(contours):
-
-                drawContours(crossing, [cnt], 0, 255)
+                x, y, w, h = boundingRect(cnt)
+                draw_str(crossing, (x, y), str(n))
             imshow('crossing', crossing)
 
     drawContours(frame, [sudoku_contour], 0, 255)
