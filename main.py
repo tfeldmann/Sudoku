@@ -91,33 +91,46 @@ def process(frame):
             # get crossing points to determine grid convolution
             #
 
+            #
+            # vertical lines
+            #
+
             # sobel x-axis
             sobel_x = Sobel(transformed, -1, 1, 0)
-            kernel_x = np.array([[1]] * 15, dtype='uint8')
+            kernel_x = np.array([[1]] * 20, dtype='uint8')
 
-            # dilate x-axis
-            sobel_x = dilate(sobel_x, kernel_x)
+            # closing x-axis
+            dilated_x = dilate(sobel_x, kernel_x)
+            closed_x = erode(dilated_x, kernel_x)
+            _, threshed_x = threshold(closed_x, 250, 255, THRESH_BINARY)
 
             # generate mask for x
-            contours, _ = findContours(sobel_x, RETR_TREE, CHAIN_APPROX_SIMPLE)
+            contours, _ = findContours(
+                threshed_x, RETR_TREE, CHAIN_APPROX_SIMPLE)
             sorted_contours = sorted(contours, cmp=cmp_height)
 
             # fill biggest 10 on mask
             mask_x = np.zeros(transformed.shape, np.uint8)
             for c in sorted_contours[:10]:
                 drawContours(mask_x, [c], 0, 255, -1)
-            # imshow('mask_x', mask_x)
+            imshow('mask_x', mask_x)
+
+            #
+            # horizontal lines
+            #
 
             # sobel y-axis
             sobel_y = Sobel(transformed, -1, 0, 1)
-            kernel_y = np.array([[[1]] * 15], dtype='uint8')
+            kernel_y = np.array([[[1]] * 20], dtype='uint8')
 
             # closing y-axis
-            sobel_y = dilate(sobel_y, kernel_y)
+            dilated_y = dilate(sobel_y, kernel_y)
+            closed_y = erode(dilated_y, kernel_y)
+            _, threshed_y = threshold(closed_y, 250, 255, THRESH_BINARY)
 
             # generate mask for y
-            contours, hierarchy = findContours(
-                sobel_y, RETR_TREE, CHAIN_APPROX_SIMPLE)
+            contours, _ = findContours(
+                threshed_y, RETR_TREE, CHAIN_APPROX_SIMPLE)
             sorted_contours = sorted(contours, cmp=cmp_width)
 
             # fill biggest 10 on mask
@@ -125,7 +138,23 @@ def process(frame):
             for c in sorted_contours[:10]:
                 drawContours(mask_y, [c], 0, 255, -1)
 
-            crossing = bitwise_and(mask_x, mask_y)
+            # grid = bitwise_or(mask_x, mask_y)
+
+            #
+            # close the grid
+            #
+            dilated_ver = dilate(mask_x, kernel_x)
+            dilated_hor = dilate(mask_y, kernel_y)
+            crossing = bitwise_and(dilated_hor, dilated_ver)
+
+            #
+            # count contours
+            #
+            contours, _ = findContours(
+                crossing, RETR_TREE, CHAIN_APPROX_SIMPLE)
+            for n, cnt in enumerate(contours):
+
+                drawContours(crossing, [cnt], 0, 255)
             imshow('crossing', crossing)
 
     drawContours(frame, [sudoku_contour], 0, 255)
