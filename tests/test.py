@@ -8,7 +8,7 @@ api.SetVariable("tessedit_char_whitelist", "0123456789")
 api.SetVariable("classify_enable_learning", "0")
 api.SetVariable("classify_enable_adaptive_matcher", "0")
 
-image = cv.LoadImage("5.png", cv.CV_LOAD_IMAGE_GRAYSCALE)
+image = cv.LoadImage("temp/5.png", cv.CV_LOAD_IMAGE_GRAYSCALE)
 
 tesseract.SetCvImage(image, api)
 text = api.GetUTF8Text()
