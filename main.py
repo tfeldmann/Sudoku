@@ -1,7 +1,7 @@
-import os
 import numpy as np
 from cv2 import *
 import tesseract
+import sudoku
 
 
 def draw_str(dst, (x, y), s):
@@ -210,14 +210,19 @@ def save_single_letters(src, crossing_points):
         # conf = api.MeanTextConf()
         # print '"%s" Confidence: %s' % (text.strip(), conf)
         try:
+            n = int(text.strip())
+            assert 0 < n < 10
             numbers.append(int(text.strip()))
         except:
             numbers.append(0)
 
-    import sudoku
-    s = sudoku.Sudoku(numbers)
-    s.solve()
-    print s
+    try:
+        s = sudoku.Sudoku(numbers)
+        s.solve()
+        print s
+        print ''
+    except:
+        pass  # no solutions found
 
 
 def solve_sudoku_in_picture(filename):
@@ -245,6 +250,6 @@ if __name__ == '__main__':
     api.SetVariable("classify_enable_learning", "0")
     api.SetVariable("classify_enable_adaptive_matcher", "0")
 
-    solve_sudoku_in_picture('pics/sudoku.jpg')
-    # solve_sudoku_in_video()
+    # solve_sudoku_in_picture('pics/sudoku.jpg')
+    solve_sudoku_in_video()
     destroyAllWindows()
