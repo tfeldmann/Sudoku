@@ -1,11 +1,13 @@
-from __future__ import division
 import numpy as np
 from cv2 import *
 
 
 def draw_str(dst, (x, y), s):
-    putText(dst, s, (x, y),
-            FONT_HERSHEY_PLAIN, 1.0, (255, 255, 255), lineType=CV_AA)
+    x, y = int(x), int(y)
+    putText(dst, s, (x + 1, y + 1), FONT_HERSHEY_PLAIN,
+            1.0, (0, 0, 0), thickness=2, lineType=CV_AA)
+    putText(dst, s, (x, y), FONT_HERSHEY_PLAIN,
+            1.0, (255, 255, 255), lineType=CV_AA)
 
 
 def cmp_height(x, y):
@@ -22,17 +24,19 @@ def cmp_width(x, y):
 
 def sort_rectangle_contour(a):
     """
-    Given a list of four points that represent a quad, this function returns
+    Given a list of points that represent a quad, this function returns
     the list sorted from top to bottom, then left to right.
     """
+    w, h = a.shape
+    sqrt_w = int(np.sqrt(w))
     # sort by y
     a = a[np.argsort(a[:, 1])]
     # put in groups
-    a = np.reshape(a, (2, 2, 2))
+    a = np.reshape(a, (sqrt_w, sqrt_w, 2))
     # sort rows by x
     a = np.vstack([row[np.argsort(row[:, 0])] for row in a])
     # undo shape transformation
-    a = np.reshape(a, (4, 1, 2))
+    a = np.reshape(a, (w, 1, 2))
     return a
 
 
@@ -58,7 +62,7 @@ def process(frame):
     for cnt in contours:
         area = contourArea(cnt)
         x, y, w, h = boundingRect(cnt)
-        if (0.7 < w / h < 1.3            # aspect ratio
+        if (0.7 < float(w) / h < 1.3            # aspect ratio
                 and area > 150 * 150     # minimal area
                 and area > sudoku_area   # biggest area on screen
                 and area > .5 * w * h):  # fills bounding rect
@@ -118,7 +122,7 @@ def process(frame):
             mask_x = np.zeros(transformed.shape, np.uint8)
             for c in sorted_contours[:10]:
                 drawContours(mask_x, [c], 0, 255, -1)
-            imshow('mask_x', mask_x)
+            # imshow('mask_x', mask_x)
 
             #
             # horizontal lines
@@ -143,24 +147,29 @@ def process(frame):
             for c in sorted_contours[:10]:
                 drawContours(mask_y, [c], 0, 255, -1)
 
-            # grid = bitwise_or(mask_x, mask_y)
-
             #
             # close the grid
             #
             dilated_ver = dilate(mask_x, kernel_x)
             dilated_hor = dilate(mask_y, kernel_y)
+            grid = bitwise_or(dilated_hor, dilated_ver)
             crossing = bitwise_and(dilated_hor, dilated_ver)
 
             #
-            # count contours
+            # sort contours points
             #
             contours, _ = findContours(
                 crossing, RETR_TREE, CHAIN_APPROX_SIMPLE)
-            for n, cnt in enumerate(contours):
-                x, y, w, h = boundingRect(cnt)
-                draw_str(crossing, (x, y), str(n))
-            imshow('crossing', crossing)
+            if len(contours) == 100:
+                crossing_points = np.empty(shape=(100, 2))
+                for n, cnt in enumerate(contours):
+                    x, y, w, h = boundingRect(cnt)
+                    cx, cy = (x + .5 * w, y + .5 * h)
+                    crossing_points[n] = [int(cx), int(cy)]
+                sorted_cross_points = sort_rectangle_contour(crossing_points)
+                for n, p in enumerate(sorted_cross_points):
+                    draw_str(grid, p[0], str(n))
+                imshow('grid', grid)
 
     drawContours(frame, [sudoku_contour], 0, 255)
     imshow('Input', frame)
