@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from cv2 import *
 
@@ -169,14 +170,32 @@ def process(frame):
                 sorted_cross_points = sort_rectangle_contour(crossing_points)
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, p[0], str(n))
-                imshow('grid', grid)
+                # imshow('grid', grid)
+                save_single_letters(transformed, sorted_cross_points)
 
     drawContours(frame, [sudoku_contour], 0, 255)
     imshow('Input', frame)
 
 
+def save_single_letters(src, crossing_points):
+    """
+    Split the rectified sudoku image into smaller pictures of letters only.
+    """
+    for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
+        square = np.float32([[-5, -5], [45, -5], [-5, 45], [45, 45]])
+        quad = np.float32([crossing_points[pos],
+                           crossing_points[pos + 1],
+                           crossing_points[pos + 10],
+                           crossing_points[pos + 11]])
+
+        matrix = getPerspectiveTransform(quad, square)
+        transformed = warpPerspective(src, matrix, (40, 40))
+        imwrite('temp/%s.png' % i, transformed)
+        os.system('tesseract temp/%s.png temp/%i -psm 10 config' % (i, i))
+
+
 def solve_sudoku_in_picture(filename):
-    pic = imread(filename, CV_LOAD_IMAGE_GRAYSCALE)
+    pic = imread(filename)
     process(pic)
     waitKey(0)
 
@@ -192,6 +211,6 @@ def solve_sudoku_in_video():
 
 
 if __name__ == '__main__':
-    # solve_sudoku_in_picture('pics/sudoku.jpg')
-    solve_sudoku_in_video()
+    solve_sudoku_in_picture('pics/sudoku.jpg')
+    # solve_sudoku_in_video()
     destroyAllWindows()
