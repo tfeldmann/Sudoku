@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from cv2 import *
+import tesseract
 
 
 def draw_str(dst, (x, y), s):
@@ -9,6 +10,14 @@ def draw_str(dst, (x, y), s):
             1.0, (0, 0, 0), thickness=2, lineType=CV_AA)
     putText(dst, s, (x, y), FONT_HERSHEY_PLAIN,
             1.0, (255, 255, 255), lineType=CV_AA)
+
+
+def iplimage_from_array(source):
+    bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]),
+                                  cv.IPL_DEPTH_8U, 1)
+    cv.SetData(bitmap, source.tostring(),
+               source.dtype.itemsize * source.shape[1])
+    return bitmap
 
 
 def cmp_height(x, y):
@@ -181,6 +190,7 @@ def save_single_letters(src, crossing_points):
     """
     Split the rectified sudoku image into smaller pictures of letters only.
     """
+    numbers = []
     for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
         square = np.float32([[-5, -5], [45, -5], [-5, 45], [45, 45]])
         quad = np.float32([crossing_points[pos],
@@ -190,8 +200,24 @@ def save_single_letters(src, crossing_points):
 
         matrix = getPerspectiveTransform(quad, square)
         transformed = warpPerspective(src, matrix, (40, 40))
-        imwrite('temp/%s.png' % i, transformed)
-        os.system('tesseract temp/%s.png temp/%i -psm 10 config' % (i, i))
+
+        #
+        # ocr
+        #
+        ipl = iplimage_from_array(transformed)
+        tesseract.SetCvImage(ipl, api)
+        text = api.GetUTF8Text()
+        # conf = api.MeanTextConf()
+        # print '"%s" Confidence: %s' % (text.strip(), conf)
+        try:
+            numbers.append(int(text.strip()))
+        except:
+            numbers.append(0)
+
+    import sudoku
+    s = sudoku.Sudoku(numbers)
+    s.solve()
+    print s
 
 
 def solve_sudoku_in_picture(filename):
@@ -211,6 +237,14 @@ def solve_sudoku_in_video():
 
 
 if __name__ == '__main__':
+
+    api = tesseract.TessBaseAPI()
+    api.Init(".", "eng", tesseract.OEM_DEFAULT)
+    api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
+    api.SetVariable("tessedit_char_whitelist", "0123456789")
+    api.SetVariable("classify_enable_learning", "0")
+    api.SetVariable("classify_enable_adaptive_matcher", "0")
+
     solve_sudoku_in_picture('pics/sudoku.jpg')
     # solve_sudoku_in_video()
     destroyAllWindows()

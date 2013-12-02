@@ -1,5 +1,18 @@
+import cv2
 import cv2.cv as cv
 import tesseract
+
+
+def iplimage_from_array(source):
+    bitmap = cv.CreateImageHeader((source.shape[1], source.shape[0]),
+                                  cv.IPL_DEPTH_8U, 1)
+    cv.SetData(bitmap, source.tostring(),
+               source.dtype.itemsize * source.shape[1])
+    return bitmap
+
+
+image = cv2.imread("../temp/5.png",  cv2.IMREAD_GRAYSCALE)
+ipl = iplimage_from_array(image)
 
 api = tesseract.TessBaseAPI()
 api.Init(".", "eng", tesseract.OEM_DEFAULT)
@@ -8,10 +21,10 @@ api.SetVariable("tessedit_char_whitelist", "0123456789")
 api.SetVariable("classify_enable_learning", "0")
 api.SetVariable("classify_enable_adaptive_matcher", "0")
 
-image = cv.LoadImage("temp/5.png", cv.CV_LOAD_IMAGE_GRAYSCALE)
+tesseract.SetCvImage(ipl, api)
 
-tesseract.SetCvImage(image, api)
 text = api.GetUTF8Text()
 conf = api.MeanTextConf()
-
 print '"%s" Confidence: %s' % (text.strip(), conf)
+
+print image
