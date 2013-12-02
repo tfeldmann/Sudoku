@@ -33,10 +33,10 @@ def cmp_width(x, y):
 
 
 def sort_rectangle_contour(a):
-    """
+    '''
     Given a list of points that represent a quad, this function returns
     the list sorted from top to bottom, then left to right.
-    """
+    '''
     w, h = a.shape
     sqrt_w = int(np.sqrt(w))
     # sort by y
@@ -186,10 +186,10 @@ def process(frame):
 
 
 def solve_sudoku_ocr(src, crossing_points):
-    """
+    '''
     Split the rectified sudoku image into smaller pictures of letters only.
     Then perform a ocr, create and solve the sudoku
-    """
+    '''
     numbers = []
     for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
         square = np.float32([[-10, -10], [40, -10], [-10, 40], [40, 40]])
@@ -215,7 +215,8 @@ def solve_sudoku_ocr(src, crossing_points):
         #
         try:
             n = int(text.strip())
-            assert 0 < n < 10
+            if not 0 < n < 10:
+                return
             numbers.append(int(text.strip()))
         except:
             # skip the frame if ocr returned no number but we found a contour
@@ -235,13 +236,13 @@ def solve_sudoku_ocr(src, crossing_points):
             draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
     imshow('src', src)
 
-    # try:
-    #     s = sudoku.Sudoku(numbers)
-    #     s.solve()
-    #     print s
-    #     print ''
-    # except:
-    #     pass  # no solutions found
+    try:
+        s = sudoku.Sudoku(numbers)
+        s.solve()
+        print s
+        print ''
+    except:
+        pass  # no solutions found
 
 
 def solve_sudoku_in_picture(filename):
@@ -270,6 +271,6 @@ if __name__ == '__main__':
     api.SetVariable("classify_enable_learning", "0")
     api.SetVariable("classify_enable_adaptive_matcher", "0")
 
-    # solve_sudoku_in_picture('pics/sudoku.jpg')
-    solve_sudoku_in_video()
+    solve_sudoku_in_picture('pics/sudoku.jpg')
+    # solve_sudoku_in_video()
     destroyAllWindows()
