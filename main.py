@@ -60,8 +60,7 @@ def process(frame):
                                ADAPTIVE_THRESH_GAUSSIAN_C,
                                THRESH_BINARY, 11, 2)
     blurred = medianBlur(binary, 3)
-    inverse = bitwise_not(blurred)
-    contours, _ = findContours(inverse, RETR_TREE,
+    contours, _ = findContours(bitwise_not(blurred), RETR_TREE,
                                CHAIN_APPROX_SIMPLE)
 
     #
@@ -72,7 +71,7 @@ def process(frame):
     for cnt in contours:
         area = contourArea(cnt)
         x, y, w, h = boundingRect(cnt)
-        if (0.7 < float(w) / h < 1.3            # aspect ratio
+        if (0.7 < float(w) / h < 1.3     # aspect ratio
                 and area > 150 * 150     # minimal area
                 and area > sudoku_area   # biggest area on screen
                 and area > .5 * w * h):  # fills bounding rect
@@ -180,26 +179,27 @@ def process(frame):
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, p[0], str(n))
                 # imshow('grid', grid)
-                save_single_letters(transformed, sorted_cross_points)
+                solve_sudoku_ocr(transformed, sorted_cross_points)
 
     drawContours(frame, [sudoku_contour], 0, 255)
     imshow('Input', frame)
 
 
-def save_single_letters(src, crossing_points):
+def solve_sudoku_ocr(src, crossing_points):
     """
     Split the rectified sudoku image into smaller pictures of letters only.
+    Then perform a ocr, create and solve the sudoku
     """
     numbers = []
     for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
-        square = np.float32([[-5, -5], [45, -5], [-5, 45], [45, 45]])
+        square = np.float32([[-10, -10], [40, -10], [-10, 40], [40, 40]])
         quad = np.float32([crossing_points[pos],
                            crossing_points[pos + 1],
                            crossing_points[pos + 10],
                            crossing_points[pos + 11]])
 
         matrix = getPerspectiveTransform(quad, square)
-        transformed = warpPerspective(src, matrix, (40, 40))
+        transformed = warpPerspective(src, matrix, (30, 30))
 
         #
         # ocr
@@ -209,20 +209,39 @@ def save_single_letters(src, crossing_points):
         text = api.GetUTF8Text()
         # conf = api.MeanTextConf()
         # print '"%s" Confidence: %s' % (text.strip(), conf)
+
+        #
+        # Number conversion
+        #
         try:
             n = int(text.strip())
             assert 0 < n < 10
             numbers.append(int(text.strip()))
         except:
+            # skip the frame if ocr returned no number but we found a contour
+            contours, _ = findContours(
+                bitwise_not(transformed), RETR_TREE, CHAIN_APPROX_SIMPLE)
+            for cnt in contours:
+                area = contourArea(cnt)
+                if area > 100:
+                    return
             numbers.append(0)
 
-    try:
-        s = sudoku.Sudoku(numbers)
-        s.solve()
-        print s
-        print ''
-    except:
-        pass  # no solutions found
+    for x in range(9):
+        for y in range(9):
+            number = numbers[y * 9 + x]
+            if number == 0:
+                continue
+            draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
+    imshow('src', src)
+
+    # try:
+    #     s = sudoku.Sudoku(numbers)
+    #     s.solve()
+    #     print s
+    #     print ''
+    # except:
+    #     pass  # no solutions found
 
 
 def solve_sudoku_in_picture(filename):
@@ -242,6 +261,7 @@ def solve_sudoku_in_video():
 
 
 if __name__ == '__main__':
+    s = sudoku.Sudoku([0] * 81)
 
     api = tesseract.TessBaseAPI()
     api.Init(".", "eng", tesseract.OEM_DEFAULT)
