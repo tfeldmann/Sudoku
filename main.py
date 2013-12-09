@@ -103,7 +103,7 @@ def process(frame):
 
             m = getPerspectiveTransform(approx, square)
             transformed = warpPerspective(separated, m, (550, 550))
-            imshow('transformed', transformed)
+            # imshow('transformed', transformed)
 
             #
             # get crossing points to determine grid convolution
@@ -182,7 +182,7 @@ def process(frame):
                 solve_sudoku_ocr(transformed, sorted_cross_points)
 
     drawContours(frame, [sudoku_contour], 0, 255)
-    imshow('Input', frame)
+    # imshow('Input', frame)
 
 
 def solve_sudoku_ocr(src, crossing_points):
@@ -234,15 +234,37 @@ def solve_sudoku_ocr(src, crossing_points):
             if number == 0:
                 continue
             draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
-    imshow('src', src)
+    # imshow('src', src)
 
     try:
         s = sudoku.Sudoku(numbers)
         s.solve()
         print s
         print ''
+        show_solution(s)
     except:
         pass  # no solutions found
+
+
+def show_solution(sudoku, source=None):
+    empty = np.empty(shape=(450, 450, 3), dtype=np.uint8)
+    empty.fill(255)
+    for x in range(1, 9):
+        line(empty, (50 * x, 0), (50 * x, 450), (0, 0, 0),
+             thickness=1 if x % 3 != 0 else 2)
+    for y in range(1, 9):
+        line(empty, (0, 50 * y), (450, 50 * y), (0, 0, 0),
+             thickness=1 if y % 3 != 0 else 2)
+    for y, row in enumerate(sudoku.rows):
+        for x, value in enumerate(row):
+            color = (0, 128, 0)
+            if source and source.grid[y * 9 + x]:
+                color = (0, 0, 0)
+            putText(empty, str(value),
+                    (x * 50 + 8, y * 50 + 50 - 8),
+                    FONT_HERSHEY_COMPLEX, 1.5,
+                    color, thickness=1, lineType=CV_AA)
+    imshow('solution', empty)
 
 
 def solve_sudoku_in_picture(filename):
@@ -262,15 +284,24 @@ def solve_sudoku_in_video():
 
 
 if __name__ == '__main__':
+    import copy
     s = sudoku.Sudoku([0] * 81)
+    s.grid[0] = 1
+    s.grid[10] = 9
+    s.grid[50] = 8
+    s.grid[80] = 9
+    source = copy.copy(s)
+    s.solve()
+    show_solution(s, source)
+    waitKey(0)
 
-    api = tesseract.TessBaseAPI()
-    api.Init(".", "eng", tesseract.OEM_DEFAULT)
-    api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
-    api.SetVariable("tessedit_char_whitelist", "0123456789")
-    api.SetVariable("classify_enable_learning", "0")
-    api.SetVariable("classify_enable_adaptive_matcher", "0")
+    # api = tesseract.TessBaseAPI()
+    # api.Init(".", "eng", tesseract.OEM_DEFAULT)
+    # api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
+    # api.SetVariable("tessedit_char_whitelist", "0123456789")
+    # api.SetVariable("classify_enable_learning", "0")
+    # api.SetVariable("classify_enable_adaptive_matcher", "0")
 
-    solve_sudoku_in_picture('pics/sudoku.jpg')
+    # solve_sudoku_in_picture('pics/sudoku.jpg')
     # solve_sudoku_in_video()
     destroyAllWindows()
