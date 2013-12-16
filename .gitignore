@@ -1,2 +1,3 @@
 *.sublime-workspace
 temp/*
+*.pyc
