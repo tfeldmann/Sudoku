@@ -42,12 +42,14 @@ def iplimage_from_array(source):
 
 
 def cmp_height(x, y):
+    """used for sorting by height"""
     _, _, _, hx = cv2.boundingRect(x)
     _, _, _, hy = cv2.boundingRect(y)
     return hy - hx
 
 
 def cmp_width(x, y):
+    """used for sorting by width"""
     _, _, wx, _ = cv2.boundingRect(x)
     _, _, wy, _ = cv2.boundingRect(y)
     return wy - wx
@@ -333,6 +335,10 @@ def solve_sudoku_ocr(src, crossing_points):
 
 
 def draw_sudoku(sudoku, source=None):
+    """
+    Draws the given sudoku and returns the resulting image.
+    If a source (unsolved sudoku) is given it will color the cells.
+    """
     result = np.empty(shape=(450, 450, 3), dtype=np.uint8)
     result.fill(255)
 
@@ -358,12 +364,14 @@ def draw_sudoku(sudoku, source=None):
 
 
 def solve_sudoku_in_picture(filename):
+    """uses a given file for detection"""
     pic = cv2.imread(filename)
     process(pic)
     cv2.waitKey(0)
 
 
 def solve_sudoku_in_video():
+    """Uses the main video capture device for detection"""
     cap = cv2.VideoCapture(0)
     while(True):
         _, frame = cap.read()
@@ -374,7 +382,8 @@ def solve_sudoku_in_video():
 
 
 def main():
-    # solve_sudoku_in_picture('pics/sudoku.jpg')
+    # solve_sudoku_in_picture('pics/sudoku-easy.png')
+    # solve_sudoku_in_picture('pics/sudoku.png')
     solve_sudoku_in_video()
     cv2.destroyAllWindows()
 
