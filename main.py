@@ -66,7 +66,7 @@ def sort_rectangle_contour(points):
 def process(frame):
 
     #
-    # preprocessing
+    # 1. preprocessing
     #
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     binary = cv2.adaptiveThreshold(gray, 255,
@@ -78,7 +78,7 @@ def process(frame):
                                    cv2.CHAIN_APPROX_SIMPLE)
 
     #
-    # try to find the sudoku
+    # 2. try to find the sudoku
     #
     sudoku_area = 0
     sudoku_contour = None
@@ -93,11 +93,12 @@ def process(frame):
             sudoku_contour = cnt
 
     #
-    # separate sudoku from background
+    # 3. separate sudoku from background
     #
     if sudoku_contour is not None:
 
-        # first we make sure the found contour can be approximated by a quad
+        # first we make sure the found contour can be approximated by a
+        # rotated quad (4 corners)
         perimeter = cv2.arcLength(sudoku_contour, True)
         approx = cv2.approxPolyDP(sudoku_contour, 0.1 * perimeter, True)
 
@@ -105,57 +106,68 @@ def process(frame):
             # successfully approximated
             # we now transform the sudoku to a fixed size 450x450
             # plus 50 pixel border and remove the background
-            mask = np.zeros(gray.shape, np.uint8)
-            cv2.drawContours(mask, [sudoku_contour], 0, 255, -1)
-            mask_inv = cv2.bitwise_not(mask)
-            separated = cv2.bitwise_or(mask_inv, blurred)
-            # cv2.imshow('separated', separated)
 
+            # create empty mask image
+            mask = np.zeros(gray.shape, np.uint8)
+            # fill a the sudoku-contour with white
+            cv2.drawContours(mask, [sudoku_contour], 0, 255, -1)
+            # invert the mask
+            mask_inv = cv2.bitwise_not(mask)
+            # the blurred picture is already thresholded so this step shows
+            # a only the the black areas in the sudoku
+            separated = cv2.bitwise_or(mask_inv, blurred)
+            cv2.imshow('separated', separated)
+
+            # create a perspective transformation matrix. "square" defines the
+            # target dimensions (450x450). The image we warp "separated" in
+            # has bigger dimensions than that (550x550) to assure that no
+            # pixels are cut off accidentially on convoluted images
             square = np.float32([[50, 50], [500, 50], [50, 500], [500, 500]])
-            approx = np.float32([i[0] for i in approx])  # conversion
+            approx = np.float32([i[0] for i in approx])  # api needs conversion
+            # sort the approx points to match the points defined in square
             approx = sort_rectangle_contour(approx)
 
             m = cv2.getPerspectiveTransform(approx, square)
             transformed = cv2.warpPerspective(separated, m, (550, 550))
-            # cv2.imshow('transformed', transformed)
+            cv2.imshow('transformed', transformed)
 
             #
-            # get crossing points to determine grid convolution
+            # 4. get crossing points to determine grid convolution
             #
 
-            #
-            # vertical lines
+            # 4.1 vertical lines
             #
 
             # sobel x-axis
-            sobel_x = cv2.Sobel(transformed, -1, 1, 0)
-            kernel_x = np.array([[1]] * 20, dtype='uint8')
+            sobel_x = cv2.Sobel(transformed, ddepth=-1, dx=1, dy=0)
+            kernel_x = np.array([[1]] * 20, dtype='uint8')  # vertical kernel
 
             # closing x-axis
             dilated_x = cv2.dilate(sobel_x, kernel_x)
             closed_x = cv2.erode(dilated_x, kernel_x)
-            _, threshed_x = cv2.threshold(closed_x, 250, 255,
-                                          cv2.THRESH_BINARY)
+            _, threshed_x = cv2.threshold(closed_x, thresh=250, maxval=255,
+                                          type=cv2.THRESH_BINARY)
 
             # generate mask for x
             contours, _ = cv2.findContours(threshed_x,
                                            cv2.RETR_TREE,
                                            cv2.CHAIN_APPROX_SIMPLE)
+            # sort contours by height
             sorted_contours = sorted(contours, cmp=cmp_height)
 
-            # fill biggest 10 on mask
+            # fill biggest 10 contours on mask (white)
             mask_x = np.zeros(transformed.shape, np.uint8)
             for c in sorted_contours[:10]:
                 cv2.drawContours(mask_x, [c], 0, 255, -1)
-            # cv2.imshow('mask_x', mask_x)
+            cv2.imshow('mask_x', mask_x)
 
-            #
-            # horizontal lines
+            # 4.2 horizontal lines
             #
 
+            # this is essentially the same procedure as for the x-axis
             # sobel y-axis
-            sobel_y = cv2.Sobel(transformed, -1, 0, 1)
-            kernel_y = np.array([[[1]] * 20], dtype='uint8')
+            sobel_y = cv2.Sobel(transformed, ddepth=-1, dx=0, dy=1)
+            kernel_y = np.array([[[1]] * 20], dtype='uint8')  # horizontal krnl
 
             # closing y-axis
             dilated_y = cv2.dilate(sobel_y, kernel_y)
@@ -175,29 +187,40 @@ def process(frame):
                 cv2.drawContours(mask_y, [c], 0, 255, -1)
 
             #
-            # close the grid
+            # 4.3 close the grid
             #
             dilated_ver = cv2.dilate(mask_x, kernel_x)
             dilated_hor = cv2.dilate(mask_y, kernel_y)
+            # now we have the single crossing points as well as the complete
+            # grid
             grid = cv2.bitwise_or(dilated_hor, dilated_ver)
             crossing = cv2.bitwise_and(dilated_hor, dilated_ver)
 
             #
-            # sort contours points
+            # 5. sort crossing points
             #
             contours, _ = cv2.findContours(crossing,
                                            cv2.RETR_TREE,
                                            cv2.CHAIN_APPROX_SIMPLE)
+            # a complete sudoku must have exactly 100 crossing points
             if len(contours) == 100:
+                # take the center points of the bounding rects of the crossing
+                # points. This should be precise enough, calculating the
+                # moments is not necessary.
                 crossing_points = np.empty(shape=(100, 2))
                 for n, cnt in enumerate(contours):
                     x, y, w, h = cv2.boundingRect(cnt)
                     cx, cy = (x + .5 * w, y + .5 * h)
                     crossing_points[n] = [int(cx), int(cy)]
                 sorted_cross_points = sort_rectangle_contour(crossing_points)
+                # show the numbers next to the points
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
-                # cv2.imshow('grid', grid)
+                cv2.imshow('grid', grid)
+
+                #
+                # 6. Solve the sudoku
+                #
                 solve_sudoku_ocr(transformed, sorted_cross_points)
 
     cv2.drawContours(frame, [sudoku_contour], 0, 255)
@@ -207,10 +230,17 @@ def process(frame):
 def solve_sudoku_ocr(src, crossing_points):
     """
     Split the rectified sudoku image into smaller pictures of letters only.
-    Then perform a ocr, create and solve the sudoku
+    Then perform ocr on the letter images, create and solve the sudoku using
+    the Sudoku class.
     """
     numbers = []
+    # enumerate all the crossing points except the ones on the far right border
+    # to get the single cells
     for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
+
+        # warp the perspective of the cell to match a square.
+        # the target image "transformed" is slightly smaller than "square" to
+        # cut off noise on the borders
         square = np.float32([[-10, -10], [40, -10], [-10, 40], [40, 40]])
         quad = np.float32([crossing_points[pos],
                            crossing_points[pos + 1],
@@ -254,7 +284,7 @@ def solve_sudoku_ocr(src, crossing_points):
             if number == 0:
                 continue
             draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
-    # cv2.imshow('src', src)
+    cv2.imshow('src', src)
 
     try:
         s = sudoku.Sudoku(numbers)
