@@ -4,6 +4,17 @@ import numpy as np
 import tesseract
 import sudoku
 
+# settings
+DEBUG = False
+
+# init tesseract
+api = tesseract.TessBaseAPI()
+api.Init(".", "eng", tesseract.OEM_DEFAULT)
+api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
+api.SetVariable("tessedit_char_whitelist", "0123456789")
+api.SetVariable("classify_enable_learning", "0")
+api.SetVariable("classify_enable_adaptive_matcher", "0")
+
 
 def draw_str(dst, (x, y), s):
     """
@@ -116,7 +127,8 @@ def process(frame):
             # the blurred picture is already thresholded so this step shows
             # a only the the black areas in the sudoku
             separated = cv2.bitwise_or(mask_inv, blurred)
-            cv2.imshow('separated', separated)
+            if DEBUG:
+                cv2.imshow('separated', separated)
 
             # create a perspective transformation matrix. "square" defines the
             # target dimensions (450x450). The image we warp "separated" in
@@ -129,7 +141,8 @@ def process(frame):
 
             m = cv2.getPerspectiveTransform(approx, square)
             transformed = cv2.warpPerspective(separated, m, (550, 550))
-            cv2.imshow('transformed', transformed)
+            if DEBUG:
+                cv2.imshow('transformed', transformed)
 
             #
             # 4. get crossing points to determine grid convolution
@@ -159,7 +172,8 @@ def process(frame):
             mask_x = np.zeros(transformed.shape, np.uint8)
             for c in sorted_contours[:10]:
                 cv2.drawContours(mask_x, [c], 0, 255, -1)
-            cv2.imshow('mask_x', mask_x)
+            if DEBUG:
+                cv2.imshow('mask_x', mask_x)
 
             # 4.2 horizontal lines
             #
@@ -216,7 +230,8 @@ def process(frame):
                 # show the numbers next to the points
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
-                cv2.imshow('grid', grid)
+                if DEBUG:
+                    cv2.imshow('grid', grid)
 
                 #
                 # 6. Solve the sudoku
@@ -242,6 +257,7 @@ def solve_sudoku_ocr(src, crossing_points):
         # the target image "transformed" is slightly smaller than "square" to
         # cut off noise on the borders
         square = np.float32([[-10, -10], [40, -10], [-10, 40], [40, 40]])
+        # get the corner points for the cell i
         quad = np.float32([crossing_points[pos],
                            crossing_points[pos + 1],
                            crossing_points[pos + 10],
@@ -251,11 +267,14 @@ def solve_sudoku_ocr(src, crossing_points):
         transformed = cv2.warpPerspective(src, matrix, (30, 30))
 
         #
-        # ocr
+        # perform the ocr
         #
+
+        # for the tesseract api it is neccessary to convert the image to the
+        # old style opencv iplimage
         ipl = iplimage_from_array(transformed)
         tesseract.SetCvImage(ipl, api)
-        text = api.GetUTF8Text()
+        ocr_text = api.GetUTF8Text()
         # conf = api.MeanTextConf()
         # print '"%s" Confidence: %s' % (text.strip(), conf)
 
@@ -263,10 +282,13 @@ def solve_sudoku_ocr(src, crossing_points):
         # Number conversion
         #
         try:
-            n = int(text.strip())
+            # strip the text from whitespace and try to convert it to an
+            # integer
+            n = int(ocr_text.strip())
             if not 0 < n < 10:
                 return
-            numbers.append(int(text.strip()))
+            else:
+                numbers.append(int(ocr_text.strip()))
         except:
             # skip the frame if ocr returned no number but we found a contour
             contours, _ = cv2.findContours(cv2.bitwise_not(transformed),
@@ -276,44 +298,62 @@ def solve_sudoku_ocr(src, crossing_points):
                 area = cv2.contourArea(cnt)
                 if area > 100:
                     return
+
+            # if no number or contour has been found the cell must be empty
             numbers.append(0)
 
+    #
+    # draw the recognized numbers into the image
     for x in range(9):
         for y in range(9):
             number = numbers[y * 9 + x]
-            if number == 0:
-                continue
-            draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
-    cv2.imshow('src', src)
+            if not number == 0:
+                draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
+    if DEBUG:
+        cv2.imshow('src', src)
 
+    # try to solve the sudoku using the Sudoku class
     try:
-        s = sudoku.Sudoku(numbers)
-        s.solve()
-        print s
-        print ''
-        show_solution(s)
+        solved_sudoku = sudoku.Sudoku(numbers)
+        solved_sudoku.solve()
+
+        # show the solution in console
+        if DEBUG:
+            print(solved_sudoku)
+            print('')  # newline
+
+        # show solution as an image. Pass the sudoku source to enable colouring
+        source_sudoku = sudoku.Sudoku(numbers)
+        solution_image = draw_sudoku(solved_sudoku, source_sudoku)
+        cv2.imshow('solution', solution_image)
     except:
-        pass  # no solutions found
+        # no solutions found
+        pass
 
 
-def show_solution(sudoku, source=None):
-    empty = np.empty(shape=(450, 450, 3), dtype=np.uint8)
-    empty.fill(255)
+def draw_sudoku(sudoku, source=None):
+    result = np.empty(shape=(450, 450, 3), dtype=np.uint8)
+    result.fill(255)
+
+    # vertical lines
     for x in range(1, 9):
-        cv2.line(empty, (50 * x, 0), (50 * x, 450), (0, 0, 0),
+        cv2.line(result, (50 * x, 0), (50 * x, 450), (0, 0, 0),
                  thickness=1 if x % 3 != 0 else 2)
+    # horizontal lines
     for y in range(1, 9):
-        cv2.line(empty, (0, 50 * y), (450, 50 * y), (0, 0, 0),
+        cv2.line(result, (0, 50 * y), (450, 50 * y), (0, 0, 0),
                  thickness=1 if y % 3 != 0 else 2)
+
     for y, row in enumerate(sudoku.rows):
         for x, value in enumerate(row):
             color = (0, 128, 0)
+            # black text if the cell was part of the source sudoku
             if source and source.grid[y * 9 + x]:
                 color = (0, 0, 0)
-            cv2.putText(empty, str(value), (x * 50 + 8, y * 50 + 50 - 8),
+            cv2.putText(result, str(value), (x * 50 + 8, y * 50 + 50 - 8),
                         cv2.FONT_HERSHEY_COMPLEX, 1.5,
                         color, thickness=1, lineType=cv2.CV_AA)
-    cv2.imshow('solution', empty)
+    return result
 
 
 def solve_sudoku_in_picture(filename):
@@ -332,16 +372,11 @@ def solve_sudoku_in_video():
     cap.release()
 
 
-if __name__ == '__main__':
-    s = sudoku.Sudoku([0] * 81)
-
-    api = tesseract.TessBaseAPI()
-    api.Init(".", "eng", tesseract.OEM_DEFAULT)
-    api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
-    api.SetVariable("tessedit_char_whitelist", "0123456789")
-    api.SetVariable("classify_enable_learning", "0")
-    api.SetVariable("classify_enable_adaptive_matcher", "0")
-
+def main():
     # solve_sudoku_in_picture('pics/sudoku.jpg')
     solve_sudoku_in_video()
     cv2.destroyAllWindows()
+
+
+if __name__ == '__main__':
+    main()
