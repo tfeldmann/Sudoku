@@ -296,7 +296,7 @@ def solve_sudoku_ocr(src, crossing_points):
                                            cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 100:
+                if area > 50:
                     return
 
             # if no number or contour has been found the cell must be empty
