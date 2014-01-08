@@ -311,6 +311,7 @@ def solve_sudoku_ocr(src, crossing_points):
                 draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
     if DEBUG:
         cv2.imshow('src', src)
+    cv2.imshow('Detected', src)
 
     # try to solve the sudoku using the Sudoku class
     try:
