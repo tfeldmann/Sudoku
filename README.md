@@ -22,7 +22,7 @@ To run the program execute:
 python main.py
 ```
 
-## Creating executables
+## Creating standalone executables
 First make sure you can run the program successfully with `python main.py`.
 Then download *PyInstaller* and use one of the commands below:
 
