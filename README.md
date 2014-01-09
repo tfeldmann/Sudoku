@@ -1,8 +1,11 @@
 <div align="center"><img src="Resources/Icon.png" alt="Sudoku-CV Icon"></div>
 
-This program uses your webcam to detect and solve any given 9x9 sudoku.
+Solve sudokus by showing them to your webcam.
 
-It is written is Python and uses OpenCV for image processing and Tesseract for OCR. The sudoku is solved with the python-constraint library.
+This program is written in Python and uses OpenCV for image processing and Tesseract for OCR. The sudoku is solved using the python-constraint library.
+
+## Screenshots
+Coming soon.
 
 ## Download
 Coming soon.
@@ -10,8 +13,9 @@ Coming soon.
 - Mac OS X
 - Windows
 
-## Screenshots
-Coming soon.
+## Running from source
+This program is tested with `Python 2.7.5`, `OpenCV 2.4.7`,
+`tesseract 3.02.02`, `numpy 1.8.0` and `python-tesseract`.
 
 ## Creating executables
 First make sure you can run the program successfully with `python main.py`.
@@ -24,4 +28,3 @@ python -O pyinstaller.py -w build-mac.spec
 Windows:
 python -O pyinstaller.py -w build-win.spec
 ```
-
