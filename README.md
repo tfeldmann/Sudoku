@@ -2,7 +2,7 @@
 
 This program uses your webcam to detect and solve any given 9x9 sudoku.
 
-![Sudoku-CV Icon](Resources/Icon.png "Sudoku-CV Icon")
+<div align="center"><img src="Resources/Icon.png" alt="Sudoku-CV Icon"></div>
 
 It is written is Python and uses OpenCV for image processing and Tesseract for OCR. The sudoku is solved with the python-constraint library.
 
