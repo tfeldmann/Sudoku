@@ -4,7 +4,7 @@ import numpy as np
 import tesseract
 import sudoku
 
-# settings
+# Debug mode shows images for each step
 DEBUG = False
 
 # init tesseract

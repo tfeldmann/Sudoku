@@ -1,3 +1,6 @@
 *.sublime-workspace
 temp/*
 *.pyc
+build/*
+dist/*
+*.pyo
