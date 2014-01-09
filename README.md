@@ -17,6 +17,11 @@ Coming soon.
 This program is tested with `Python 2.7.5`, `OpenCV 2.4.7`,
 `tesseract 3.02.02`, `numpy 1.8.0` and `python-tesseract`.
 
+To run the program execute:
+```
+python main.py
+```
+
 ## Creating executables
 First make sure you can run the program successfully with `python main.py`.
 Then download *PyInstaller* and use one of the commands below:
