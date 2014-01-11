@@ -4,3 +4,4 @@ temp/*
 build/*
 dist/*
 *.pyo
+Sudoku.pdf
