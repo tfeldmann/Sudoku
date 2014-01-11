@@ -125,3 +125,64 @@ Aus diesem Bild werden die zehn größten Konturen ermittelt und isoliert, indem
     \end{center}
 \end{figure}
 
+Die Linien werden verlängert, damit sichergestellt ist, dass auch an den Randpunkten Überschneidungen entstehen.
+Durch Verodern erhält man das vollständige Sudoku-Gitter, durch Verunden nur die Kreuzungspunkte.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/crossing}
+        \includegraphics[width=.5\textwidth]{Abbildungen/grid}
+    \end{center}
+\end{figure}
+
+
+\subsubsection{Reihenfolge der Kreuzungspunkte}
+Wendet man auf das Bild der Kreuzungspunkte eine Konturerkennung an, liegen die erkannten Konturen nicht in einer definierten Reihenfolge vor und müssen daher sortiert werden.
+
+Als Koordinaten der Kreuzungspunkte werden die Mittelpunkte der umschließenden Rechtecke verwendet.
+Die Konturpunkte liegen in Form einer eindimensionalen Liste vor. Um diese nach ihrer Position im Bild zu sortieren, müssen die Koordinaten zunächst nach ihrer Y-Position sortiert werden.
+Anschließend werden die Koordinaten zu Gruppen zusammengefasst.
+Die Gruppengröße entspricht dabei der Anzahl der Koordinaten auf einer Kante des Quadrats, also der Wurzel aus der Anzahl der verfügbaren Punkte.
+
+Innerhalb der Gruppen werden die Koordinaten nun nach ihrer X-Position sortiert und die Gruppen anschließend wieder aufgelöst.
+
+Die Funktionen hierfür kommen aus der Python-Library \emph{numpy}, welche speziell für Matrixoperationen konzipiert wurde.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/sorted_grid}
+        \includegraphics[width=.5\textwidth]{Abbildungen/unsorted_grid}
+    \end{center}
+\end{figure}
+
+
+\subsection{Ziffererkennung}
+Für die Ziffererkennung werden zunächst Einzelbilder der Zellen benötigt.
+
+Die Kreuzungspunkte liegen in diesem Schritt bereits sortiert vor.
+Als Referenzkoordinate für jede Zelle wird jeweils der obere linke Eckpunkt betrachtet. Alle Eckpunkte auf dem rechten Rand werden ausgelassen.
+Ist der obere, linke Eckpunkt einer Zelle gegeben, liegt der rechte obere Eckpunkt eine Position, der untere linke Zehn und der untere rechte Elf Positionen weiter in der Liste der Kreuzungspunkte.
+
+Sobald die Eckpunkte einer Zelle bekannt sind, werden diese perspektivisch zu einem Quadrat transformiert, wobei die fehlerbehafteten Randbereiche abgeschnitten werden.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[]{Abbildungen/Ziffer}
+    \end{center}
+\end{figure}
+
+Die so isolierten Ziffern werden der OCR-Library Tesseract übergeben.
+Diese wurde so initialisiert, dass sie ein einzelnes Zeichen erwartet. Außerdem wurde die Liste der zulässigen Buchstaben so modifiziert, dass nur Ziffern von 0-9 erkannt werden können.
+Die Library liefert einen String mit dem Ergebnis der Konvertierung zurück.
+
+Um die Fehlerrate zu minimieren, wird das Ergebnis anschließend auf Sinnhaftigkeit überprüft.
+Dazu wird zunächst versucht, das Ergebnis in einen Integer zwischen 0 und 9 zu konvertieren.
+
+Schlägt dies fehl, kann es sich um eine Leerzelle handeln.
+Wird dennoch eine Kontur mit einer gewissen Mindestgröße gefunden, wird davon ausgegangen, dass eine Zahl vorhanden war, aber nicht richtig erkannt wurde.
+In diesem Fall wird der Vorgang abgebrochen und auf den nächsten Frame gewartet.
+
+Die erkannten Ziffern werden anschließend in das Bild hineingeschrieben.
+
+
+\subsection{Lösung des Sudokus}

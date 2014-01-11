@@ -234,7 +234,8 @@ def process(frame):
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
                 if DEBUG:
-                    cv2.imshow('grid', grid)
+                    cv2.imshow('unsorted grid', grid)
+                    pass
 
                 #
                 # 6. Solve the sudoku
