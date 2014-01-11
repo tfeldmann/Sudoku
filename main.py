@@ -156,9 +156,9 @@ def process(frame):
 
             # sobel x-axis
             sobel_x = cv2.Sobel(transformed, ddepth=-1, dx=1, dy=0)
-            kernel_x = np.array([[1]] * 20, dtype='uint8')  # vertical kernel
 
             # closing x-axis
+            kernel_x = np.array([[1]] * 20, dtype='uint8')  # vertical kernel
             dilated_x = cv2.dilate(sobel_x, kernel_x)
             closed_x = cv2.erode(dilated_x, kernel_x)
             _, threshed_x = cv2.threshold(closed_x, thresh=250, maxval=255,
@@ -184,9 +184,9 @@ def process(frame):
             # this is essentially the same procedure as for the x-axis
             # sobel y-axis
             sobel_y = cv2.Sobel(transformed, ddepth=-1, dx=0, dy=1)
-            kernel_y = np.array([[[1]] * 20], dtype='uint8')  # horizontal krnl
 
             # closing y-axis
+            kernel_y = np.array([[[1]] * 20], dtype='uint8')  # horizontal krnl
             dilated_y = cv2.dilate(sobel_y, kernel_y)
             closed_y = cv2.erode(dilated_y, kernel_y)
             _, threshed_y = cv2.threshold(closed_y, 250, 255,

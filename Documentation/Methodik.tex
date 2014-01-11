@@ -90,4 +90,38 @@ Zuerst werden die Eckpunkte des Zielquadrats festgelegt und den approximierten E
 
 
 \subsection{Gitteranalyse}
+Da die Positionen der Ziffern aufgrund der Wölbung des Papiers nicht fix angenommen werden können, müssen zunächst die Eckpunkte der Einzelzellen gefunden werden.
+Dazu werden die Kreuzungspunkte der Gitterlinien bestimmt.
+
+\subsubsection{Linienerkennung}
+Zur Erkennung der Kanten wird der Sobel-Operator in X- und Y-Richtung eingesetzt.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/sobel_x}
+        \includegraphics[width=.5\textwidth]{Abbildungen/sobel_y}
+    \end{center}
+\end{figure}
+
+Der Sobel-Operator generiert an den Kreuzungspunkten Fehlstellen, daher sind die Gitterlinien nicht durchgängig und müssen geschlossen werden.
+Sie werden durch einen Closing-Operator geschlossen.
+Dazu wird das Bild mit dem gleichen Element dilatiert und anschließend erodiert.
+
+Der Sobel-Operator erzeugt Grauwerte im Bild, die durch eine erneute Binärisierung wieder verworfen werden.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/threshed_x}
+        \includegraphics[width=.5\textwidth]{Abbildungen/threshed_y}
+    \end{center}
+\end{figure}
+
+Aus diesem Bild werden die zehn größten Konturen ermittelt und isoliert, indem die Konturen der Linien auf ein leeres Bild gezeichnet werden.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/mask_x}
+        \includegraphics[width=.5\textwidth]{Abbildungen/mask_y}
+    \end{center}
+\end{figure}
 
