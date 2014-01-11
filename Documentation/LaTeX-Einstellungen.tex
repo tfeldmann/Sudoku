@@ -1,0 +1,99 @@
+% !TEX root = QlockToo.tex
+% Einstellungen
+\documentclass[10pt, DIV12, a4paper]{scrartcl}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[ngerman]{babel}
+\usepackage{amsmath}
+\usepackage{nicefrac}
+\usepackage{graphicx, wrapfig, float}
+\usepackage[onehalfspacing]{setspace}
+\usepackage{paralist}  % \begin{compactitem}
+\usepackage{listings, color}
+\usepackage[parfill]{parskip}
+\usepackage{setspace}
+\usepackage{tabularx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{multicol}
+\usepackage{pdfpages}
+\usepackage{lscape}
+
+\onehalfspacing
+\setcounter{tocdepth}{2} % Tiefe Inhaltsverzeichnis
+\numberwithin{figure}{section}
+\setkomafont{sectioning}{\normalcolor\bfseries}
+
+% -------------------
+% Quelltextanzeige
+\usepackage{listings, color}
+
+\newcommand{\lstfontfamily}{\ttfamily}
+%\newcommand{\lstfontfamily}{\sffamily} % Adapt to schneider
+\newcommand{\textlst}[1]{\texttt{#1}}
+\newcommand{\mathlst}[1]{\mathtt{#1}}
+\lstdefinestyle{tiny}{basicstyle=\tiny\lstfontfamily}
+\lstdefinestyle{scriptsize}{basicstyle=\scriptsize\lstfontfamily}
+\lstdefinestyle{footnotesize}{basicstyle=\footnotesize\lstfontfamily}
+\lstdefinestyle{small}{basicstyle=\small\lstfontfamily}
+\lstdefinestyle{normalsize}{basicstyle=\normalsize\lstfontfamily}
+\lstdefinestyle{large}{basicstyle=\lstfontfamily}
+
+\lstdefinestyle{monitor}{morekeywords={monitor, export}}
+\lstdefinestyle{ConcPascal}{language=Pascal,style=monitor}
+\newcommand{\mathcodefont}[1]{\mathtt{#1}}
+\newcommand{\codefont}[1]{{\lstfontfamily #1}}
+\newlength{\lstframexleftmargin}
+\setlength{\lstframexleftmargin}{1mm}
+
+\definecolor{darkviolet}{rgb}{0.5,0,0.4}
+\definecolor{darkgreen}{rgb}{0,0.4,0.2}
+\definecolor{darkblue}{rgb}{0.1,0.1,0.9}
+\definecolor{darkgrey}{rgb}{0.5,0.5,0.5}
+\definecolor{lightblue}{rgb}{0.4,0.4,1}
+
+\lstdefinestyle{eclipse}{
+    basicstyle=\small\lstfontfamily,
+    emphstyle=\color{red}\bfseries,
+    keywordstyle=\color{darkviolet}\bfseries,
+    commentstyle=\color{darkgreen},
+    stringstyle=\color{darkblue},
+    numberstyle=\color{darkgrey}\lstfontfamily,
+    emphstyle=\color{red},
+    % get also javadoc style comments
+    morecomment=[s][\color{lightblue}]{/**}{*/},
+    morekeywords={@start, @stop, @v, @about, @demo_translation, @demo_forward, @demo_sideways, @demo_stopWithDelay, uint8_t, uint16_t, int16_t, int8_t, byte},
+   %columns=fullflexible, %spaceflexible, %flexible, fullflexible
+%  escapeinside=`',
+%  escapechar=@,
+  showstringspaces=false,
+  numbers=left
+}
+
+\definecolor{lstBg}{rgb}{0.98, 0.98, 0.98}
+\definecolor{lstFrame}{rgb}{0.8, 0.8, 0.8}
+\lstset{
+    language = C,
+    style=eclipse,
+    tabsize=4,
+    basicstyle = \ttfamily,
+    title=\lstname,
+    % numbers=none,
+    backgroundcolor=\color{lstBg},
+    rulecolor=\color{lstFrame},
+    frame=lines,
+    %captionpos=b,
+    aboveskip=1\bigskipamount,%{1.5\baselineskip},
+    showstringspaces=false,
+    extendedchars=true,
+    breaklines=false,
+    literate=%
+        {Ö}{{\"O}}1
+        {Ä}{{\"A}}1
+        {Ü}{{\"U}}1
+        {ß}{{\ss}}1
+        {ü}{{\"u}}1
+        {ä}{{\"a}}1
+        {ö}{{\"o}}1
+}
