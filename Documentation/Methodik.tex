@@ -56,7 +56,7 @@ Alle Konturen werden über folgende Kriterien gefiltert:
 Von allen Konturen, die diese Bedingungen erfüllen, wird diejenige mit der größten Konturfläche ausgewählt.
 
 
-\subsection{Sudoku isolieren}
+\subsection{Sudoku isolieren und transformieren}
 Das umschließende Rechteck der Kontur stellt nur in Spezialfällen die tatsächliche Kontur des Sudokus dar.
 Um die Eckpunkte des Sudokus im Bild zu ermitteln, wird daher die gefundene Kontur mit einem Linienzug approximiert.
 Über Parameter der Funktion lässt sich der maximal gültige Fehler der Approximation einstellen.
@@ -70,4 +70,24 @@ Dazu wird auf einen schwarzen Hintergrund die Kontur des Sudokus gezeichnet und 
 Dieses Bild wird invertiert und mit dem bereits binärisierten Bild verodert.
 Das Resultat ist das isolierte Sudoku auf weißem Hintergrund.
 Dies war notwendig, da auf schwarzem Hintergrund die äußerste Feldbegrenzung verschwindet.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/separated}
+    \end{center}
+\end{figure}
+
+Das isolierte Sudoku wird anhand der approximierten Eckpunkte perspektivisch zu einem Quadrat der Größe 450x450px transformiert.
+Je nach Biegung des Papiers sind im Quadrat und an den Außenrändern noch perspektivische Verzerrungen vorhanden. Um zu verhindern, dass diese verzerrten Randbereiche abgeschnitten werden, wird ein zusätzlicher Abstand von 50px hinzugefügt.
+
+Zuerst werden die Eckpunkte des Zielquadrats festgelegt und den approximierten Eckpunkten zugewiesen. Daraus ergibt sich die Transformationsmatrix, die anschließend auf das isolierte Sudoku angewendet wird.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/transformed}
+    \end{center}
+\end{figure}
+
+
+\subsection{Gitteranalyse}
 

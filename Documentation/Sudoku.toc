@@ -1,4 +1,0 @@
-\select@language {ngerman}
-\contentsline {section}{\numberline {1}Einleitung}{2}
-\contentsline {section}{\numberline {2}Methodik}{3}
-\contentsline {subsection}{\numberline {2.1}Bild-Vorverarbeitung}{3}
