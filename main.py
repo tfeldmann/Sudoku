@@ -5,7 +5,7 @@ import tesseract
 import sudoku
 
 # Debug mode shows images for each step
-DEBUG = False
+DEBUG = True
 
 # init tesseract
 api = tesseract.TessBaseAPI()
@@ -86,6 +86,7 @@ def process(frame):
                                    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
                                    cv2.THRESH_BINARY, 11, 2)
     blurred = cv2.medianBlur(binary, 3)
+    cv2.imshow('blurred', blurred)
     contours, _ = cv2.findContours(cv2.bitwise_not(blurred),
                                    cv2.RETR_TREE,
                                    cv2.CHAIN_APPROX_SIMPLE)
@@ -298,7 +299,7 @@ def solve_sudoku_ocr(src, crossing_points):
                                            cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
                 area = cv2.contourArea(cnt)
-                if area > 50:
+                if area > 100:
                     return
 
             # if no number or contour has been found the cell must be empty
@@ -382,9 +383,9 @@ def solve_sudoku_in_video():
 
 
 def main():
-    # solve_sudoku_in_picture('pics/sudoku-easy.png')
-    # solve_sudoku_in_picture('pics/sudoku.png')
-    solve_sudoku_in_video()
+    # solve_sudoku_in_picture('pics/sudoku.jpg')
+    solve_sudoku_in_picture('pics/Foto2.jpg')
+    # solve_sudoku_in_video()
     cv2.destroyAllWindows()
 
 
