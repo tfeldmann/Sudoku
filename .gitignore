@@ -6,7 +6,5 @@ dist/*
 *.pyo
 Sudoku.pdf
 *.aux
-
-Documentation/Sudoku.aux
 *synctex*
 *.toc

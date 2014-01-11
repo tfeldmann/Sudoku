@@ -20,21 +20,16 @@ Als Eingangsbild wird das Bild aus Abbildung~\ref{fig:Input} verwendet. Dieses w
 \subsection{Bild-Vorverarbeitung}
 Das Bild wird zunächst in Graufstufen umgesetzt, da Farben vernachlässigt werden können.
 
-\begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/gray}
-    \end{center}
-\end{figure}
-
 Anschließend wird das Bild mit einem adaptiven Threshold binärisiert. Ein einfacher Threshold eignet sich nicht, da die Licht- und Kontrastverhältnissen unbekannt sind.
 
-\begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/binary}
-    \end{center}
-\end{figure}
-
 Um das Rauschen zu entfernen, wird das Bild mit einem 3x3 Medianfilter gefiltert.
+
+\begin{figure}[h!]
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/gray}}
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/binary}}
+    \hfill
+    \caption{Verlängerte und binärisierte Kanten}
+\end{figure}
 
 \begin{figure}[h!]
     \begin{center}
@@ -97,10 +92,9 @@ Dazu werden die Kreuzungspunkte der Gitterlinien bestimmt.
 Zur Erkennung der Kanten wird der Sobel-Operator in X- und Y-Richtung eingesetzt.
 
 \begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/sobel_x}
-        \includegraphics[width=.5\textwidth]{Abbildungen/sobel_y}
-    \end{center}
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/sobel_x}}
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/sobel_y}}\hfill
+    \caption{Erkannte Kanten nach der Sobel-Operation}
 \end{figure}
 
 Der Sobel-Operator generiert an den Kreuzungspunkten Fehlstellen, daher sind die Gitterlinien nicht durchgängig und müssen geschlossen werden.
@@ -110,29 +104,26 @@ Dazu wird das Bild mit dem gleichen Element dilatiert und anschließend erodiert
 Der Sobel-Operator erzeugt Grauwerte im Bild, die durch eine erneute Binärisierung wieder verworfen werden.
 
 \begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/threshed_x}
-        \includegraphics[width=.5\textwidth]{Abbildungen/threshed_y}
-    \end{center}
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/threshed_x}}
+    \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/threshed_y}}\hfill
+    \caption{Verlängerte und binärisierte Kanten}
 \end{figure}
 
 Aus diesem Bild werden die zehn größten Konturen ermittelt und isoliert, indem die Konturen der Linien auf ein leeres Bild gezeichnet werden.
 
 \begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/mask_x}
-        \includegraphics[width=.5\textwidth]{Abbildungen/mask_y}
-    \end{center}
+    \subfigure[vertikal]{\includegraphics[width=0.49\textwidth]{Abbildungen/mask_x}}
+    \subfigure[horizontal]{\includegraphics[width=0.49\textwidth]{Abbildungen/mask_y}}\hfill
+    \caption{Die vereinzelten Linien}
 \end{figure}
 
 Die Linien werden verlängert, damit sichergestellt ist, dass auch an den Randpunkten Überschneidungen entstehen.
 Durch Verodern erhält man das vollständige Sudoku-Gitter, durch Verunden nur die Kreuzungspunkte.
 
 \begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/crossing}
-        \includegraphics[width=.5\textwidth]{Abbildungen/grid}
-    \end{center}
+    \subfigure[Kreuzungspunkte (nach Verundung)]{\includegraphics[width=0.49\textwidth]{Abbildungen/crossing}}
+    \subfigure[Gitter (nach Veroderung)]{\includegraphics[width=0.49\textwidth]{Abbildungen/grid}}\hfill
+    \caption{Erkannte Kreuzungspunkte und Gesamtgitter}
 \end{figure}
 
 
@@ -149,10 +140,9 @@ Innerhalb der Gruppen werden die Koordinaten nun nach ihrer X-Position sortiert 
 Die Funktionen hierfür kommen aus der Python-Library \emph{numpy}, welche speziell für Matrixoperationen konzipiert wurde.
 
 \begin{figure}[h!]
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/sorted_grid}
-        \includegraphics[width=.5\textwidth]{Abbildungen/unsorted_grid}
-    \end{center}
+    \subfigure[unsortiert]{\includegraphics[width=0.49\textwidth]{Abbildungen/unsorted_grid}}
+    \subfigure[sortiert]{\includegraphics[width=0.49\textwidth]{Abbildungen/sorted_grid}}\hfill
+    \caption{Reihen der Kreuzungspunktkoordinaten}
 \end{figure}
 
 
@@ -182,7 +172,14 @@ Schlägt dies fehl, kann es sich um eine Leerzelle handeln.
 Wird dennoch eine Kontur mit einer gewissen Mindestgröße gefunden, wird davon ausgegangen, dass eine Zahl vorhanden war, aber nicht richtig erkannt wurde.
 In diesem Fall wird der Vorgang abgebrochen und auf den nächsten Frame gewartet.
 
-Die erkannten Ziffern werden anschließend in das Bild hineingeschrieben.
+Die erkannten Ziffern werden anschließend in das Ausgangsbild hineingeschrieben.
+
+\begin{figure}[h!]
+    \begin{center}
+        \includegraphics[width=.5\textwidth]{Abbildungen/detected}
+    \end{center}
+\end{figure}
+
 
 
 \subsection{Lösung des Sudokus}
