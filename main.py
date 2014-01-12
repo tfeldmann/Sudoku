@@ -5,15 +5,13 @@ import tesseract
 import sudoku
 
 # Debug mode shows images for each step
-DEBUG = True
+DEBUG = False
 
 # init tesseract
 api = tesseract.TessBaseAPI()
 api.Init(".", "eng", tesseract.OEM_DEFAULT)
 api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
 api.SetVariable("tessedit_char_whitelist", "0123456789")
-api.SetVariable("classify_enable_learning", "0")
-api.SetVariable("classify_enable_adaptive_matcher", "0")
 
 
 def draw_str(dst, (x, y), s):
@@ -55,10 +53,10 @@ def cmp_width(x, y):
     return wy - wx
 
 
-def sort_rectangle_contour(points):
+def sort_grid_points(points):
     """
     Given a flat list of points (x, y), this function returns the list of
-    points sorted from top to bottom, then left to right.
+    points sorted from top to bottom, then groupwise from left to right.
 
     We assume that the points are nearly equidistant and have the form of a
     square.
@@ -82,18 +80,18 @@ def process(frame):
     # 1. preprocessing
     #
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    binary = cv2.adaptiveThreshold(gray, 255,
-                                   cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-                                   cv2.THRESH_BINARY, 11, 2)
+    binary = cv2.adaptiveThreshold(
+        src=gray, maxValue=255,
+        adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+        thresholdType=cv2.THRESH_BINARY, blockSize=11, C=2)
     blurred = cv2.medianBlur(binary, 3)
-    cv2.imshow('blurred', blurred)
-    contours, _ = cv2.findContours(cv2.bitwise_not(blurred),
-                                   cv2.RETR_TREE,
-                                   cv2.CHAIN_APPROX_SIMPLE)
 
     #
     # 2. try to find the sudoku
     #
+    contours, _ = cv2.findContours(image=cv2.bitwise_not(blurred),
+                                   mode=cv2.RETR_LIST,
+                                   method=cv2.CHAIN_APPROX_SIMPLE)
     sudoku_area = 0
     sudoku_contour = None
     for cnt in contours:
@@ -111,10 +109,11 @@ def process(frame):
     #
     if sudoku_contour is not None:
 
-        # first we make sure the found contour can be approximated by a
-        # rotated quad (4 corners)
-        perimeter = cv2.arcLength(sudoku_contour, True)
-        approx = cv2.approxPolyDP(sudoku_contour, 0.1 * perimeter, True)
+        # approximate the contour with connected lines
+        perimeter = cv2.arcLength(curve=sudoku_contour, closed=True)
+        approx = cv2.approxPolyDP(curve=sudoku_contour,
+                                  epsilon=0.1 * perimeter,
+                                  closed=True)
 
         if len(approx) == 4:
             # successfully approximated
@@ -128,7 +127,7 @@ def process(frame):
             # invert the mask
             mask_inv = cv2.bitwise_not(mask)
             # the blurred picture is already thresholded so this step shows
-            # a only the the black areas in the sudoku
+            # only the black areas in the sudoku
             separated = cv2.bitwise_or(mask_inv, blurred)
             if DEBUG:
                 cv2.imshow('separated', separated)
@@ -136,11 +135,11 @@ def process(frame):
             # create a perspective transformation matrix. "square" defines the
             # target dimensions (450x450). The image we warp "separated" in
             # has bigger dimensions than that (550x550) to assure that no
-            # pixels are cut off accidentially on convoluted images
+            # pixels are cut off accidentially on twisted images
             square = np.float32([[50, 50], [500, 50], [50, 500], [500, 500]])
             approx = np.float32([i[0] for i in approx])  # api needs conversion
             # sort the approx points to match the points defined in square
-            approx = sort_rectangle_contour(approx)
+            approx = sort_grid_points(approx)
 
             m = cv2.getPerspectiveTransform(approx, square)
             transformed = cv2.warpPerspective(separated, m, (550, 550))
@@ -148,7 +147,7 @@ def process(frame):
                 cv2.imshow('transformed', transformed)
 
             #
-            # 4. get crossing points to determine grid convolution
+            # 4. get crossing points to determine grid buckling
             #
 
             # 4.1 vertical lines
@@ -216,8 +215,7 @@ def process(frame):
             #
             # 5. sort crossing points
             #
-            contours, _ = cv2.findContours(crossing,
-                                           cv2.RETR_TREE,
+            contours, _ = cv2.findContours(crossing, cv2.RETR_TREE,
                                            cv2.CHAIN_APPROX_SIMPLE)
             # a complete sudoku must have exactly 100 crossing points
             if len(contours) == 100:
@@ -229,13 +227,12 @@ def process(frame):
                     x, y, w, h = cv2.boundingRect(cnt)
                     cx, cy = (x + .5 * w, y + .5 * h)
                     crossing_points[n] = [int(cx), int(cy)]
-                sorted_cross_points = sort_rectangle_contour(crossing_points)
+                sorted_cross_points = sort_grid_points(crossing_points)
                 # show the numbers next to the points
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
                 if DEBUG:
                     cv2.imshow('unsorted grid', grid)
-                    pass
 
                 #
                 # 6. Solve the sudoku
@@ -384,9 +381,10 @@ def solve_sudoku_in_video():
 
 
 def main():
+    # uncomment to solve pictures:
     # solve_sudoku_in_picture('pics/sudoku.jpg')
-    solve_sudoku_in_picture('pics/Foto2.jpg')
-    # solve_sudoku_in_video()
+    # solve_sudoku_in_picture('pics/Foto2.jpg')
+    solve_sudoku_in_video()
     cv2.destroyAllWindows()
 
 
