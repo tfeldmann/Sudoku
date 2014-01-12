@@ -1,5 +1,4 @@
 % !TEX root = Sudoku.tex
-% Einstellungen
 \documentclass[10pt, DIV12, a4paper]{scrartcl}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
@@ -9,8 +8,6 @@
 \usepackage{nicefrac}
 \usepackage{graphicx, wrapfig, float}
 \usepackage[onehalfspacing]{setspace}
-\usepackage{paralist}  % \begin{compactitem}
-\usepackage{listings, color}
 \usepackage[parfill]{parskip}
 \usepackage{setspace}
 \usepackage{tabularx}
@@ -22,7 +19,7 @@
 \usepackage{subfigure}
 
 \onehalfspacing
-\setcounter{tocdepth}{2} % Tiefe Inhaltsverzeichnis
+\setcounter{tocdepth}{2} % Tiefe des Inhaltsverzeichnis
 \numberwithin{figure}{section}
 \setkomafont{sectioning}{\normalcolor\bfseries}
 
@@ -30,71 +27,48 @@
 % Quelltextanzeige
 \usepackage{listings, color}
 
-\newcommand{\lstfontfamily}{\ttfamily}
-%\newcommand{\lstfontfamily}{\sffamily} % Adapt to schneider
-\newcommand{\textlst}[1]{\texttt{#1}}
-\newcommand{\mathlst}[1]{\mathtt{#1}}
-\lstdefinestyle{tiny}{basicstyle=\tiny\lstfontfamily}
-\lstdefinestyle{scriptsize}{basicstyle=\scriptsize\lstfontfamily}
-\lstdefinestyle{footnotesize}{basicstyle=\footnotesize\lstfontfamily}
-\lstdefinestyle{small}{basicstyle=\small\lstfontfamily}
-\lstdefinestyle{normalsize}{basicstyle=\normalsize\lstfontfamily}
-\lstdefinestyle{large}{basicstyle=\lstfontfamily}
+\definecolor{Code}{rgb}{0,0,0}
+\definecolor{Decorators}{rgb}{0.5,0.5,0.5}
+\definecolor{Numbers}{rgb}{0.5,0,0}
+\definecolor{MatchingBrackets}{rgb}{0.25,0.5,0.5}
+\definecolor{Keywords}{rgb}{0,0,1}
+\definecolor{self}{rgb}{1,0,0}
+\definecolor{Strings}{rgb}{0,0.63,0}
+\definecolor{Comments}{rgb}{0,0.63,1}
+\definecolor{Backquotes}{rgb}{0,0,0}
+\definecolor{Classname}{rgb}{1,0,0}
+\definecolor{FunctionName}{rgb}{0,1,0}
+\definecolor{Operators}{rgb}{0,0,1}
+\definecolor{Background}{rgb}{0.98,0.98,0.98}
 
-\lstdefinestyle{monitor}{morekeywords={monitor, export}}
-\lstdefinestyle{ConcPascal}{language=Pascal,style=monitor}
-\newcommand{\mathcodefont}[1]{\mathtt{#1}}
-\newcommand{\codefont}[1]{{\lstfontfamily #1}}
-\newlength{\lstframexleftmargin}
-\setlength{\lstframexleftmargin}{1mm}
-
-\definecolor{darkviolet}{rgb}{0.5,0,0.4}
-\definecolor{darkgreen}{rgb}{0,0.4,0.2}
-\definecolor{darkblue}{rgb}{0.1,0.1,0.9}
-\definecolor{darkgrey}{rgb}{0.5,0.5,0.5}
-\definecolor{lightblue}{rgb}{0.4,0.4,1}
-
-\lstdefinestyle{eclipse}{
-    basicstyle=\small\lstfontfamily,
-    emphstyle=\color{red}\bfseries,
-    keywordstyle=\color{darkviolet}\bfseries,
-    commentstyle=\color{darkgreen},
-    stringstyle=\color{darkblue},
-    numberstyle=\color{darkgrey}\lstfontfamily,
-    emphstyle=\color{red},
-    % get also javadoc style comments
-    morecomment=[s][\color{lightblue}]{/**}{*/},
-    morekeywords={@start, @stop, @v, @about, @demo_translation, @demo_forward, @demo_sideways, @demo_stopWithDelay, uint8_t, uint16_t, int16_t, int8_t, byte},
-   %columns=fullflexible, %spaceflexible, %flexible, fullflexible
-%  escapeinside=`',
-%  escapechar=@,
-  showstringspaces=false,
-  numbers=left
-}
-
-\definecolor{lstBg}{rgb}{0.98, 0.98, 0.98}
-\definecolor{lstFrame}{rgb}{0.8, 0.8, 0.8}
 \lstset{
-    language = C,
-    style=eclipse,
-    tabsize=4,
-    basicstyle = \ttfamily,
-    title=\lstname,
-    % numbers=none,
-    backgroundcolor=\color{lstBg},
-    rulecolor=\color{lstFrame},
-    frame=lines,
-    %captionpos=b,
-    aboveskip=1\bigskipamount,%{1.5\baselineskip},
-    showstringspaces=false,
-    extendedchars=true,
-    breaklines=false,
-    literate=%
-        {Ö}{{\"O}}1
-        {Ä}{{\"A}}1
-        {Ü}{{\"U}}1
-        {ß}{{\ss}}1
-        {ü}{{\"u}}1
-        {ä}{{\"a}}1
-        {ö}{{\"o}}1
+numbers=left,
+numberstyle=\footnotesize,
+numbersep=1em,
+xleftmargin=1em,
+framextopmargin=2em,
+framexbottommargin=2em,
+showspaces=false,
+showtabs=false,
+showstringspaces=false,
+frame=l,
+tabsize=4,
+% Basic
+basicstyle=\ttfamily\small\setstretch{1},
+backgroundcolor=\color{Background},
+language=Python,
+% Comments
+commentstyle=\color{Comments}\slshape,
+% Strings
+stringstyle=\color{Strings},
+morecomment=[s][\color{Strings}]{"""}{"""},
+morecomment=[s][\color{Strings}]{'''}{'''},
+% keywords
+morekeywords={import,from,class,def,for,while,if,is,in,elif,else,not,and,or,print,break,continue,return,True,False,None,access,as,,del,except,exec,finally,global,import,lambda,pass,print,raise,try,assert},
+keywordstyle={\color{Keywords}\bfseries},
+% additional keywords
+morekeywords={[2]@invariant},
+keywordstyle={[2]\color{Decorators}\slshape},
+emph={self},
+emphstyle={\color{self}\slshape},
 }
