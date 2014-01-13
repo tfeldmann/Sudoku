@@ -9,18 +9,18 @@
 \end{figure}
 
 \section{Vorgehensweise}
-Zum Lösen dieser Aufgabe wird die Programmiersprache \emph{Python 2.7} verwendet.
-Für diese steht in Form der Open-Source Library \emph{OpenCV} eine leistungsstarke Bibliothek zur Bildverarbeitung zur Verfügung.
+Zum Lösen dieser Aufgabe wird die Programmiersprache \emph{Python 2.7}\footnote{http://www.python.org} verwendet.
+Für diese steht in Form der Open-Source Library \emph{OpenCV}\footnote{http://docs.opencv.org} eine leistungsstarke Bibliothek zur Bildverarbeitung zur Verfügung.
 OpenCV selbst ist in C++ geschrieben, bietet jedoch entsprechende Python-Bindings an.
 
-Für die Erkennung der Ziffern wird die von Google entwickelte \emph{Tesseract}-Library verwendet. Auch für diese existieren Python-Bindings in Form von \emph{python-tesseract}.
+Für die Erkennung der Ziffern wird die von Google entwickelte \emph{Tesseract}\footnote{https://code.google.com/p/tesseract-ocr}-Library verwendet. Auch für diese existieren Python-Bindings in Form von \emph{python-tesseract}\footnote{https://code.google.com/p/python-tesseract}.
 
 Als Eingangsbild wird das Bild aus Abbildung~\ref{fig:Input} verwendet. Dieses wurde mit der Webcam eines MacBook Pro aufgenommen.
 
 \subsection{Bild-Vorverarbeitung}
 Das Bild wird zunächst in Graufstufen umgesetzt, da Farben vernachlässigt werden können.
 
-Anschließend wird das Bild mit einem adaptiven Threshold binärisiert. Ein einfacher Threshold eignet sich nicht, da die Licht- und Kontrastverhältnissen unbekannt sind.
+Anschließend wird das Bild mit einem adaptiven Threshold binärisiert. Ein einfacher Threshold eignet sich nicht, da die Licht- und Kontrastverhältnisse unbekannt sind.
 
 Um das Rauschen zu entfernen, wird noch ein 3x3 Medianfilter angewendet.
 
@@ -40,13 +40,13 @@ def process(frame):
 \begin{figure}[H]
     \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/gray}}
     \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/binary}}
-    \begin{center}
-        \includegraphics[width=.5\textwidth]{Abbildungen/median}
-    \end{center}
-    \hfill
-    \caption{Zwischenschritte bei der Bild-Vorverarbeitung}
 \end{figure}
-
+%
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=.5\textwidth]{Abbildungen/median}
+    \caption{Nach der Bild-Vorverarbeitung}
+\end{figure}
 
 \subsection{Sudoku lokalisieren}
 Um die Position des Sudokus zu bestimmen, werden zunächst alle Konturen im Bild ermittelt.
@@ -62,9 +62,7 @@ Alle Konturen werden über folgende Kriterien gefiltert:
 Von allen Konturen, die diese Bedingungen erfüllen, wird diejenige mit der größten Konturfläche ausgewählt.
 
 \begin{lstlisting}
-    #
-    # 2. try to find the sudoku
-    #
+    # try to find the sudoku
     contours, _ = cv2.findContours(image=cv2.bitwise_not(blurred),
                                    mode=cv2.RETR_LIST,
                                    method=cv2.CHAIN_APPROX_SIMPLE)
@@ -84,7 +82,7 @@ Von allen Konturen, die diese Bedingungen erfüllen, wird diejenige mit der grö
 
 \subsection{Sudoku isolieren und transformieren}
 Das umschließende Rechteck der Kontur stellt nur in Spezialfällen die tatsächliche Kontur des Sudokus dar.
-Um die Eckpunkte des Sudokus im Bild zu ermitteln, wird daher die gefundene Kontur mit dem \emph{Ramer–Douglas–Peucker}-Algorithmus durch einem Linienzug approximiert.
+Um die Eckpunkte des Sudokus im Bild zu ermitteln, wird daher die gefundene Kontur mit dem \emph{Ramer–Douglas–Peucker}\footnote{http://de.wikipedia.org/wiki/Douglas-Peucker-Algorithmus}-Algorithmus durch einem Linienzug approximiert.
 Über den Parameter \emph{epsilon} lässt sich der maximal gültige Fehler der Approximation einstellen.
 So kann erreicht werden, dass die Approximation aus genau vier Punkten besteht, die dann die Eckpunkte darstellen.
 
@@ -104,11 +102,11 @@ Er muss so eingestellt werden, dass leichte Verformungen noch zulässig sind, di
                                   closed=True)
 \end{lstlisting}
 
-Wenn die Kontur mit vier Punkten approximiert werden konnte, wird zur Separation eine Maske erstellt.
+Wenn die Kontur mit vier Punkten approximiert werden kann, wird zur Separation eine Maske erstellt.
 Dazu wird auf einen schwarzen Hintergrund die Kontur des Sudokus gezeichnet und weiß gefüllt.
 Dieses Bild wird invertiert und mit dem bereits binärisierten Bild verodert.
 Das Resultat ist das isolierte Sudoku auf weißem Hintergrund.
-Dies war notwendig, da auf schwarzem Hintergrund die äußerste Feldbegrenzung verschwindet.
+Dies ist notwendig, da sonst auf schwarzem Hintergrund die äußerste Feldbegrenzung verschwindet.
 
 \begin{lstlisting}
     if len(approx) == 4:
@@ -194,7 +192,7 @@ Der Sobel-Operator erzeugt Grauwerte im Bild, die durch eine erneute Binärisier
     \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/threshed_x}}
     \subfigure{\includegraphics[width=0.49\textwidth]{Abbildungen/threshed_y}}
     \hfill
-    \caption{Verlängerte und binärisierte Kanten}
+    \caption{Geschlossene und binärisierte Gitterlinien}
 \end{figure}
 
 Aus diesem Bild werden die zehn größten Konturen ermittelt und isoliert, indem die Konturen der Linien auf ein leeres Bild gezeichnet werden.
@@ -219,7 +217,7 @@ Aus diesem Bild werden die zehn größten Konturen ermittelt und isoliert, indem
     \caption{Die vereinzelten Linien}
 \end{figure}
 
-Die Linien werden verlängert, damit sichergestellt ist, dass auch an den Randpunkten Überschneidungen entstehen.
+Die Linien werden durch Dilatation verlängert, damit sichergestellt ist, dass auch an den Randpunkten Überschneidungen entstehen.
 Durch Verodern erhält man das vollständige Sudoku-Gitter, durch Verunden nur die Kreuzungspunkte.
 
 \begin{lstlisting}
@@ -241,13 +239,14 @@ Durch Verodern erhält man das vollständige Sudoku-Gitter, durch Verunden nur d
 Wendet man auf das Bild der Kreuzungspunkte eine Konturerkennung an, liegen die erkannten Konturen nicht in einer definierten Reihenfolge vor und müssen daher sortiert werden.
 
 Als Koordinaten der Kreuzungspunkte werden die Mittelpunkte der umschließenden Rechtecke verwendet.
-Die Konturpunkte liegen in Form einer eindimensionalen Liste vor. Um diese nach ihrer Position im Bild zu sortieren, müssen die Koordinaten zunächst nach ihrer Y-Position sortiert werden.
+Darauf liegen die Koordinaten in Form einer eindimensionalen Liste vor.
+
+Um diese nach ihrer Position im Bild zu sortieren, müssen die Koordinaten zunächst nach ihrer Y-Position sortiert werden.
 Anschließend werden die Koordinaten zu Gruppen zusammengefasst.
 Die Gruppengröße entspricht dabei der Anzahl der Koordinaten auf einer Kante des Quadrats, also der Wurzel aus der Anzahl der verfügbaren Punkte.
-
 Innerhalb der Gruppen werden die Koordinaten nun nach ihrer X-Position sortiert und die Gruppen anschließend wieder aufgelöst.
 
-Die Funktionen hierfür kommen aus der Python-Library \emph{numpy}, welche speziell für Matrixoperationen konzipiert wurde.
+Die Funktionen hierfür kommen aus der Python-Library \emph{numpy}\footnote{http://www.numpy.org}, welche speziell für Matrixoperationen konzipiert wurde.
 
 \begin{lstlisting}
     #
@@ -304,14 +303,15 @@ def sort_grid_points(points):
 Für die Ziffererkennung werden zunächst Einzelbilder der Zellen benötigt.
 
 Die Kreuzungspunkte liegen in diesem Schritt bereits sortiert vor.
-Als Referenzkoordinate für jede Zelle wird jeweils der obere linke Eckpunkt betrachtet. Alle Eckpunkte auf dem rechten Rand werden ausgelassen.
+Als Referenzkoordinate für jede Zelle wird jeweils der obere linke Eckpunkt betrachtet.
+Alle Eckpunkte auf dem rechten Rand werden ausgelassen.
 Ist der obere, linke Eckpunkt einer Zelle gegeben, liegt der rechte obere Eckpunkt eine Position, der untere linke Zehn und der untere rechte Elf Positionen weiter in der Liste der Kreuzungspunkte.
 
 Sobald die Eckpunkte einer Zelle bekannt sind, werden diese perspektivisch zu einem Quadrat transformiert, wobei die fehlerbehafteten Randbereiche abgeschnitten werden.
 
 \begin{figure}[H]
     \begin{center}
-        \includegraphics[]{Abbildungen/Ziffer}
+        \includegraphics{Abbildungen/Ziffer}
     \end{center}
 \end{figure}
 
@@ -342,14 +342,14 @@ def solve_sudoku_ocr(src, crossing_points):
 \end{lstlisting}
 
 Die so isolierten Ziffern werden der OCR-Library Tesseract übergeben.
-Diese wurde so initialisiert, dass sie ein einzelnes Zeichen erwartet. Außerdem wurde die Liste der zulässigen Buchstaben so modifiziert, dass nur Ziffern von 0-9 erkannt werden können.
+Diese wird so initialisiert, dass sie ein einzelnes Zeichen erwartet. Außerdem wurde die Liste der zulässigen Buchstaben so modifiziert, dass nur Ziffern von 0-9 erkannt werden können.
 Die Library liefert einen String mit dem Ergebnis der Konvertierung zurück.
 
 Um die Fehlerrate zu minimieren, wird das Ergebnis anschließend auf Sinnhaftigkeit überprüft.
 Dazu wird zunächst versucht, das Ergebnis in einen Integer zwischen 0 und 9 zu konvertieren.
 
 Schlägt dies fehl, kann es sich um eine Leerzelle handeln.
-Wird dennoch eine Kontur mit einer gewissen Mindestgröße gefunden, wird davon ausgegangen, dass eine Zahl vorhanden war, aber nicht richtig erkannt wurde.
+Wird dennoch eine Kontur mit einer gewissen Mindestgröße gefunden, wird davon ausgegangen, dass eine Zahl vorhanden ist, aber nicht richtig erkannt wird.
 In diesem Fall wird der Vorgang abgebrochen und auf den nächsten Frame gewartet.
 
 \begin{lstlisting}
@@ -392,9 +392,9 @@ Zur Lösung der Sudokus wird die Klasse \lstinline{Sudoku} implementiert.
 Ihr Konstruktor erwartet eine eindimensionale Liste aller vorgegebenen Ziffern.
 Ist eine Zelle leer, so steht an dessen Stelle eine $0$.
 
-Die Klasse enthält Methoden zum direkten Zugriff auf einzelne Reihen, Spalten und Blöcke. Hinzu kommt eine Funktion zur formatierten Ausgabe auf der Konsole.
+Die Klasse enthält Methoden zum einfachen Zugriff auf einzelne Reihen, Spalten und Blöcke. Hinzu kommt eine Funktion zur formatierten Ausgabe auf der Konsole.
 
-Zur Lösung des Sudokus wird die Library \emph{python-constraint} genutzt. Hiermit können die Bedingungen hinterlegt werden, dass in jeder Spalte und Zeile sowie in jedem Block keine Zahl doppelt vorkommen darf.
+Zur Lösung des Sudokus wird die Library \emph{python-constraint}\footnote{http://labix.org/python-constraint} genutzt. Hiermit kann mit dem Prädikat \lstinline{AllDifferentConstraint} die Bedingung hinterlegt werden, dass in jeder Spalte und Zeile sowie in jedem Block keine Zahl doppelt vorkommen darf. Der Wertebereich der Lösungsvariablen wird auf $0-9$ eingeschränkt, bzw. bei vorgegebenen Zellen auf die gegebene Lösung.
 Anschließend kann das Constraint-Problem mit einem Backtracking-Solver gelöst werden.
 
 Die gefundene Lösung wird darauf in ein Bild gezeichnet und angezeigt.
@@ -404,4 +404,5 @@ Dabei signalisieren schwarze Ziffern bereits vorgegebene Zellen; grüne Ziffern 
     \begin{center}
         \includegraphics[width=.5\textwidth]{Abbildungen/solution}
     \end{center}
+    \caption{Die generierte Ausgabe}
 \end{figure}
