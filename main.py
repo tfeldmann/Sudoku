@@ -389,21 +389,24 @@ def solve_sudoku_in_video(camera):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--input_file',
-                        help='input file (eg: testpic.jpg)',
-                        type=str,
-                        default='')
-    parser.add_argument('-c', '--camera_input',
-                        help='camera stream to capture, default: 0',
-                        type=int,
-                        default=0)
+    parser.add_argument('-o', '--file', type=str, default='',
+                        help='Input file (eg: testpic.jpg)')
+    parser.add_argument('-c', '--camera', type=int, default=0,
+                        help='Camera stream to capture, default: 0')
+    parser.add_argument('-d', '--debug', action='store_true',
+                        help='Enable debug mode (shows processing steps)')
     args = parser.parse_args()
 
+    # enable global debug mode
+    if args.debug:
+        global DEBUG
+        DEBUG = True
+
     # if the user has not specified a test file to load use the video input
-    if args.input_file == '':
-        solve_sudoku_in_video(args.camera_input)
+    if args.file == '':
+        solve_sudoku_in_video(args.camera)
     else:
-        solve_sudoku_in_picture(args.input_file)
+        solve_sudoku_in_picture(args.file)
 
     cv2.destroyAllWindows()
 
