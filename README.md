@@ -22,6 +22,19 @@ To run the program execute:
 python main.py
 ```
 
+The script supports several command line arguments:
+```
+>> python sudoku-cv.py --help
+usage: sudoku-cv.py [-h] [-o FILE] [-c CAMERA] [-d]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -o FILE, --file FILE  Input file (eg: test.png)
+  -c CAMERA, --camera CAMERA
+                        Camera stream to capture, default: 0
+  -d, --debug           Enable debug mode (shows processing steps)
+```
+
 ## Creating standalone executables
 First make sure you can run the program successfully with `python main.py`.
 Then download *PyInstaller* and use one of the commands below:
