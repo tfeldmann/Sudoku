@@ -365,13 +365,19 @@ def draw_sudoku(sudoku, source=None):
 def solve_sudoku_in_picture(filename):
     """uses a given file for detection"""
     pic = cv2.imread(filename)
+    if pic is None:
+        raise IOError('Cannot open file')
+        return
     process(pic)
     cv2.waitKey(0)
 
 
-def solve_sudoku_in_video():
+def solve_sudoku_in_video(camera):
     """Uses the main video capture device for detection"""
-    cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(camera)
+    if not cap.isOpened():
+        raise IOError('Cannot capture video device')
+        return
     while(True):
         _, frame = cap.read()
         process(frame)
@@ -381,12 +387,25 @@ def solve_sudoku_in_video():
 
 
 def main():
-    # uncomment to solve pictures:
-    # solve_sudoku_in_picture('pics/sudoku.jpg')
-    # solve_sudoku_in_picture('pics/Foto2.jpg')
-    solve_sudoku_in_video()
-    cv2.destroyAllWindows()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-i', '--input_file',
+                        help='input file (eg: testpic.jpg)',
+                        type=str,
+                        default='')
+    parser.add_argument('-c', '--camera_input',
+                        help='camera stream to capture, default: 0',
+                        type=int,
+                        default=0)
+    args = parser.parse_args()
 
+    # if the user has not specified a test file to load use the video input
+    if args.input_file == '':
+        solve_sudoku_in_video(args.camera_input)
+    else:
+        solve_sudoku_in_picture(args.input_file)
+
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     main()
