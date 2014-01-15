@@ -365,24 +365,22 @@ def draw_sudoku(sudoku, source=None):
 def solve_sudoku_in_picture(filename):
     """uses a given file for detection"""
     pic = cv2.imread(filename)
-    if pic is None:
+    if pic is not None:
+        process(pic)
+        cv2.waitKey(0)
+    else:
         raise IOError('Cannot open file')
-        return
-    process(pic)
-    cv2.waitKey(0)
 
 
 def solve_sudoku_in_video(camera):
     """Uses the main video capture device for detection"""
     cap = cv2.VideoCapture(camera)
-    if not cap.isOpened():
+    if cap.isOpened():
+        while(not cv2.waitKey(1) & 0xFF == ord('q')):
+            _, frame = cap.read()
+            process(frame)
+    else:
         raise IOError('Cannot capture video device')
-        return
-    while(True):
-        _, frame = cap.read()
-        process(frame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
     cap.release()
 
 
