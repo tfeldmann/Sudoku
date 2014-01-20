@@ -4,8 +4,8 @@ import numpy as np
 import tesseract
 import sudoku
 
-# Debug mode shows images for each step
-DEBUG = False
+# global command line args
+args = None
 
 # init tesseract
 api = tesseract.TessBaseAPI()
@@ -129,7 +129,7 @@ def process(frame):
             # the blurred picture is already thresholded so this step shows
             # only the black areas in the sudoku
             separated = cv2.bitwise_or(mask_inv, blurred)
-            if DEBUG:
+            if args.debug:
                 cv2.imshow('separated', separated)
 
             # create a perspective transformation matrix. "square" defines the
@@ -143,7 +143,7 @@ def process(frame):
 
             m = cv2.getPerspectiveTransform(approx, square)
             transformed = cv2.warpPerspective(separated, m, (550, 550))
-            if DEBUG:
+            if args.debug:
                 cv2.imshow('transformed', transformed)
 
             #
@@ -174,7 +174,7 @@ def process(frame):
             mask_x = np.zeros(transformed.shape, np.uint8)
             for c in sorted_contours[:10]:
                 cv2.drawContours(mask_x, [c], 0, 255, -1)
-            if DEBUG:
+            if args.debug:
                 cv2.imshow('mask_x', mask_x)
 
             # 4.2 horizontal lines
@@ -231,7 +231,7 @@ def process(frame):
                 # show the numbers next to the points
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
-                if DEBUG:
+                if args.debug:
                     cv2.imshow('unsorted grid', grid)
 
                 #
@@ -310,7 +310,7 @@ def solve_sudoku_ocr(src, crossing_points):
             number = numbers[y * 9 + x]
             if not number == 0:
                 draw_str(src, (75 + x * 50, 75 + y * 50), str(number))
-    if DEBUG:
+    if args.debug:
         cv2.imshow('src', src)
     cv2.imshow('Detected', src)
 
@@ -320,7 +320,7 @@ def solve_sudoku_ocr(src, crossing_points):
         solved_sudoku.solve()
 
         # show the solution in console
-        if DEBUG:
+        if args.debug:
             print(solved_sudoku)
             print('')  # newline
 
@@ -393,12 +393,8 @@ def main():
                         help='Camera stream to capture, default: 0')
     parser.add_argument('-d', '--debug', action='store_true',
                         help='Enable debug mode (shows processing steps)')
+    global args
     args = parser.parse_args()
-
-    # enable global debug mode
-    if args.debug:
-        global DEBUG
-        DEBUG = True
 
     # if the user has not specified a test file to load use the video input
     if args.file == '':

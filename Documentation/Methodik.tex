@@ -45,7 +45,7 @@ def process(frame):
 \begin{figure}[H]
     \centering
     \includegraphics[width=.5\textwidth]{Abbildungen/median}
-    \caption{Nach der Bild-Vorverarbeitung}
+    \caption{Nach der Bild-Vorverarbeitung (Graufstufen, binärisiert, gefiltert)}
 \end{figure}
 
 \subsection{Sudoku lokalisieren}
@@ -129,6 +129,7 @@ Dies ist notwendig, da sonst auf schwarzem Hintergrund die äußerste Feldbegren
     \begin{center}
         \includegraphics[width=.5\textwidth]{Abbildungen/separated}
     \end{center}
+    \caption{Das vom Hintegrund getrennte Sudoku.}
 \end{figure}
 
 Das isolierte Sudoku wird anhand der approximierten Eckpunkte perspektivisch zu einem Quadrat der Größe 450x450px transformiert.
@@ -154,6 +155,7 @@ Zuerst werden die Eckpunkte des Zielquadrats festgelegt und den approximierten E
     \begin{center}
         \includegraphics[width=.5\textwidth]{Abbildungen/transformed}
     \end{center}
+    \caption{Das perspektivisch auf die richtige Größe transformierte Sudoku.}
 \end{figure}
 
 
@@ -304,7 +306,7 @@ Für die Ziffererkennung werden zunächst Einzelbilder der Zellen benötigt.
 
 Die Kreuzungspunkte liegen in diesem Schritt bereits sortiert vor.
 Als Referenzkoordinate für jede Zelle wird jeweils der obere linke Eckpunkt betrachtet.
-Alle Eckpunkte auf dem rechten Rand werden ausgelassen.
+Alle Eckpunkte auf dem äußeren rechten Rand des Gitters werden übersprungen.
 Ist der obere, linke Eckpunkt einer Zelle gegeben, liegt der rechte obere Eckpunkt eine Position, der untere linke zehn und der untere rechte elf Positionen weiter in der Liste der Kreuzungspunkte.
 
 Sobald die Eckpunkte einer Zelle bekannt sind, werden diese perspektivisch zu einem Quadrat transformiert, wobei die fehlerbehafteten Randbereiche abgeschnitten werden.
