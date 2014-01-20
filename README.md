@@ -6,7 +6,7 @@ This program is written in Python and uses OpenCV for image processing and Tesse
 
 
 ## Screenshots
-Coming soon.
+<div align="center"><img src="Resources/Screenshot.png" alt="Sudoku-CV"></div>
 
 
 ## Download
