@@ -1,6 +1,6 @@
 # -*- mode: python -*-
-a = Analysis(['C:\\Users\\thomasfeldmann\\Documents\\GitHub\\Sudoku\\sudoku-cv.py'],
-             pathex=['C:\\Users\\thomasfeldmann\\Documents\\GitHub\\Sudoku'],
+a = Analysis(['.\\sudoku-cv.py'],
+             pathex=['.'],
              hiddenimports=[],
              hookspath=None,
              runtime_hooks=None)
@@ -12,7 +12,7 @@ exe = EXE(pyz,
           debug=False,
           strip=None,
           upx=True,
-          console=True , icon='C:\\Users\\thomasfeldmann\\Documents\\GitHub\\Sudoku\\Resources\\Icon512.ico')
+          console=True , icon='.\\Resources\\Icon512.ico')
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
