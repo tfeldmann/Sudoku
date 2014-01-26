@@ -1,0 +1,26 @@
+Installation
+============
+
+1. Installieren von Tesseract
+   (tesseract-ocr-setup-3.02.02.exe im Ordner “Development Environment”)
+
+2. Datei ausführen: “Binaries/Sudoku-CV/Sudoku-CV.exe”
+
+
+Testbilder validieren
+=====================
+
+Wird das Programm über die Kommandozeile gestartet, kann mit dem Parameter "-o" der Pfad zu einem Testbild angegeben werden. Beispiel-Testbilder liegen im Verzeichnis Code/test_pictures bei.
+
+Die Anwendung unterstützt folgende Startparameter:
+
+    >> Sudoku-CV.exe --help
+
+    usage: Sudoku-CV.exe [-h] [-o FILE] [-c CAMERA] [-d]
+
+    optional arguments:
+      -h, --help            show this help message and exit
+      -o FILE, --file FILE  Input file (eg: test.png)
+      -c CAMERA, --camera CAMERA
+                            Camera stream to capture, default: 0
+      -d, --debug           Enable debug mode (shows processing steps)
