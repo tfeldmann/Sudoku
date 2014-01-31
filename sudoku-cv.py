@@ -172,8 +172,7 @@ def process(frame):
 
             # fill biggest 10 contours on mask (white)
             mask_x = np.zeros(transformed.shape, np.uint8)
-            for c in sorted_contours[:10]:
-                cv2.drawContours(mask_x, [c], 0, 255, -1)
+            cv2.drawContours(mask_x, sorted_contours[:10], -1, 255, -1)
             if args.debug:
                 cv2.imshow('mask_x', mask_x)
 
@@ -199,8 +198,7 @@ def process(frame):
 
             # fill biggest 10 on mask
             mask_y = np.zeros(transformed.shape, np.uint8)
-            for c in sorted_contours[:10]:
-                cv2.drawContours(mask_y, [c], 0, 255, -1)
+            cv2.drawContours(mask_y, sorted_contours[:10], -1, 255, -1)
 
             #
             # 4.3 close the grid
@@ -232,7 +230,7 @@ def process(frame):
                 for n, p in enumerate(sorted_cross_points):
                     draw_str(grid, map(int, p[0]), str(n))
                 if args.debug:
-                    cv2.imshow('unsorted grid', grid)
+                    cv2.imshow('sorted grid', grid)
 
                 #
                 # 6. Solve the sudoku
@@ -276,8 +274,6 @@ def solve_sudoku_ocr(src, crossing_points):
         ipl = iplimage_from_array(transformed)
         tesseract.SetCvImage(ipl, api)
         ocr_text = api.GetUTF8Text()
-        # conf = api.MeanTextConf()
-        # print '"%s" Confidence: %s' % (text.strip(), conf)
 
         #
         # Number conversion
@@ -285,7 +281,7 @@ def solve_sudoku_ocr(src, crossing_points):
         try:
             # strip the text from whitespace and try to convert it to an
             # integer
-            n = int(ocr_text.strip())
+            n = int(ocr_text)
             if not 0 < n < 10:
                 return
             else:
