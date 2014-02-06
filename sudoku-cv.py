@@ -11,7 +11,7 @@ args = None
 api = tesseract.TessBaseAPI()
 api.Init(".", "eng", tesseract.OEM_DEFAULT)
 api.SetPageSegMode(tesseract.PSM_SINGLE_BLOCK)
-api.SetVariable("tessedit_char_whitelist", "0123456789")
+api.SetVariable("tessedit_char_whitelist", "123456789")
 
 
 def draw_str(dst, (x, y), s):
@@ -84,7 +84,7 @@ def process(frame):
         src=gray, maxValue=255,
         adaptiveMethod=cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
         thresholdType=cv2.THRESH_BINARY, blockSize=11, C=2)
-    blurred = cv2.medianBlur(binary, 3)
+    blurred = cv2.medianBlur(binary, ksize=3)
 
     #
     # 2. try to find the sudoku
@@ -164,9 +164,9 @@ def process(frame):
                                           type=cv2.THRESH_BINARY)
 
             # generate mask for x
-            contours, _ = cv2.findContours(threshed_x,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(image=threshed_x,
+                                           mode=cv2.RETR_LIST,
+                                           method=cv2.CHAIN_APPROX_SIMPLE)
             # sort contours by height
             sorted_contours = sorted(contours, cmp=cmp_height)
 
@@ -191,9 +191,9 @@ def process(frame):
                                           cv2.THRESH_BINARY)
 
             # generate mask for y
-            contours, _ = cv2.findContours(threshed_y,
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(image=threshed_y,
+                                           mode=cv2.RETR_LIST,
+                                           method=cv2.CHAIN_APPROX_SIMPLE)
             sorted_contours = sorted(contours, cmp=cmp_width)
 
             # fill biggest 10 on mask
@@ -213,8 +213,9 @@ def process(frame):
             #
             # 5. sort crossing points
             #
-            contours, _ = cv2.findContours(crossing, cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(image=crossing,
+                                           mode=cv2.RETR_LIST,
+                                           method=cv2.CHAIN_APPROX_SIMPLE)
             # a complete sudoku must have exactly 100 crossing points
             if len(contours) == 100:
                 # take the center points of the bounding rects of the crossing
@@ -250,7 +251,7 @@ def solve_sudoku_ocr(src, crossing_points):
     numbers = []
     # enumerate all the crossing points except the ones on the far right border
     # to get the single cells
-    for i, pos in enumerate([pos for pos in range(90) if (pos + 1) % 10 != 0]):
+    for i, pos in enumerate([pos for pos in range(89) if (pos + 1) % 10 != 0]):
 
         # warp the perspective of the cell to match a square.
         # the target image "transformed" is slightly smaller than "square" to
@@ -288,9 +289,9 @@ def solve_sudoku_ocr(src, crossing_points):
                 numbers.append(int(ocr_text.strip()))
         except:
             # skip the frame if ocr returned no number but we found a contour
-            contours, _ = cv2.findContours(cv2.bitwise_not(transformed),
-                                           cv2.RETR_TREE,
-                                           cv2.CHAIN_APPROX_SIMPLE)
+            contours, _ = cv2.findContours(image=cv2.bitwise_not(transformed),
+                                           mode=cv2.RETR_LIST,
+                                           method=cv2.CHAIN_APPROX_SIMPLE)
             for cnt in contours:
                 area = cv2.contourArea(cnt)
                 if area > 100:
@@ -399,6 +400,7 @@ def main():
         solve_sudoku_in_picture(args.file)
 
     cv2.destroyAllWindows()
+
 
 if __name__ == '__main__':
     main()
