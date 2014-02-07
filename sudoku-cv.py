@@ -280,13 +280,8 @@ def solve_sudoku_ocr(src, crossing_points):
         # Number conversion
         #
         try:
-            # strip the text from whitespace and try to convert it to an
-            # integer
-            n = int(ocr_text)
-            if not 0 < n < 10:
-                return
-            else:
-                numbers.append(int(ocr_text.strip()))
+            # try to convert the found text to an integer
+            numbers.append(int(ocr_text))
         except:
             # skip the frame if ocr returned no number but we found a contour
             contours, _ = cv2.findContours(image=cv2.bitwise_not(transformed),
@@ -319,9 +314,9 @@ def solve_sudoku_ocr(src, crossing_points):
         # show the solution in console
         if args.debug:
             print(solved_sudoku)
-            print('')  # newline
+            print()  # newline
 
-        # show solution as an image. Pass the sudoku source to enable colouring
+        # show solution image. Pass the sudoku source to enable colouring
         source_sudoku = sudoku.Sudoku(numbers)
         solution_image = draw_sudoku(solved_sudoku, source_sudoku)
         cv2.imshow('solution', solution_image)
